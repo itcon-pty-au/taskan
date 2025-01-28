@@ -12,22 +12,11 @@
       outline: none;
     }
 
-    .editable:focus {
-      border-bottom: 2px solid #007bff;
-    }
-
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       font-size: 16px;
       background-color: #f4f4f4;
-    }
-
-    h1 {
-      margin: 0;
-      padding: 15px;
-      background-color: #007bff;
-      color: white;
     }
 
     .container {
@@ -51,7 +40,7 @@
     }
 
     .top-menu button:hover {
-      background-color: #0056b3;
+      background-color: #000;
     }
 
     .projects-container {
@@ -90,17 +79,12 @@
       transition: border-bottom 0.2s;
     }
 
-    .project-header .editable:focus {
-      border-bottom: 2px solid #007bff;
-    }
-
     .lists-container {
       display: flex;
       gap: 15px;
     }
 
     .highlight {
-      border: 2px dashed #007bff;
       background-color: #f0f8ff;
     }
 
@@ -153,7 +137,6 @@
     }
 
     .drop-highlight {
-      border: 2px dashed #007bff;
       /* Highlight effect when an item is over this area */
       background-color: #f0f8ff;
     }
@@ -208,6 +191,92 @@
     .add-list:hover {
       background-color: #f8f9fa;
     }
+
+    .dragging {
+      opacity: 0.5;
+      cursor: move;
+    }
+
+    .drop-placeholder {
+      height: 2px;
+      background-color: #555555;
+      margin: 10px 0;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .drop-placeholder::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
+      background-color: #555555;
+      border-radius: 50%;
+    }
+
+    .drop-placeholder::after {
+      content: '';
+      position: absolute;
+      right: -5px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
+      background-color: #555555;
+      border-radius: 50%;
+    }
+
+   .list-items {
+      min-height: 50px;
+      /* Ensure empty lists have drop area */
+      padding: 10px;
+    }
+
+    .list-item.shift-up {
+      transform: translateY(-100%);
+      transition: transform 0.2s ease;
+    }
+
+    .list-item.shift-down {
+      transform: translateY(100%);
+      transition: transform 0.2s ease;
+    }
+
+    .delete-confirm:hover {
+      background-color: #000 !important;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    /* Custom checkbox styling */
+    .todo-checkbox {
+      accent-color: #28a745;  /* Green color for checked state */
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .list-item button {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .list-item:hover button {
+      opacity: 1;
+    }
   </style>
 </head>
 
@@ -217,7 +286,7 @@
       <button id="importDataBtn">Import</button>
       <button id="exportDataBtn">Export</button>
       <button id="addProjectBtn">
-        <i class="fas fa-plus"></i> Add Project
+        New Project
       </button>
     </div>
     <div id="projectsContainer" class="projects-container"></div>
@@ -261,6 +330,50 @@
       });
 
       return el;
+    }
+
+    function createDeleteButton(deleteAction) {
+      const deleteButton = document.createElement("button");
+      deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+      deleteButton.style.backgroundColor = "#555555";
+      deleteButton.style.color = "white";
+      deleteButton.style.border = "none";
+      deleteButton.style.borderRadius = "4px";
+      deleteButton.style.cursor = "pointer";
+      deleteButton.style.padding = "5px 10px";
+
+      let confirmTimeout;
+      let isConfirming = false;
+
+      deleteButton.addEventListener("click", () => {
+        if (isConfirming) {
+          // Second click - perform deletion
+          clearTimeout(confirmTimeout);
+          deleteAction();
+        } else {
+          // First click - enter confirmation state
+          isConfirming = true;
+          deleteButton.innerHTML = 'Sure?';
+          deleteButton.classList.add('delete-confirm');
+
+          confirmTimeout = setTimeout(() => {
+            // Reset after 5 seconds
+            isConfirming = false;
+            deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+            deleteButton.classList.remove('delete-confirm');
+          }, 5000);
+        }
+      });
+
+      deleteButton.addEventListener("mouseover", () => {
+        deleteButton.style.backgroundColor = "#000";
+      });
+
+      deleteButton.addEventListener("mouseout", () => {
+        deleteButton.style.backgroundColor = "#555555";
+      });
+
+      return deleteButton;
     }
 
     function createProject(project) {
@@ -322,10 +435,7 @@
         }
       });
 
-      const deleteProjectButton = document.createElement("button");
-      deleteProjectButton.innerHTML =
-        '<i class="fa-regular fa-trash-can"></i>';
-      deleteProjectButton.addEventListener("click", () => {
+      const deleteProjectButton = createDeleteButton(() => {
         appData = appData.filter((p) => p.id !== project.id);
         saveData();
         renderProjects();
@@ -381,9 +491,7 @@
       );
       listNameEl.style.flexGrow = "1";
 
-      const deleteListButton = document.createElement("button");
-      deleteListButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-      deleteListButton.addEventListener("click", () => {
+      const deleteListButton = createDeleteButton(() => {
         project.lists = project.lists.filter((l) => l.id !== list.id);
         saveData();
         renderProjects();
@@ -453,9 +561,67 @@
       const listItemsContainer = document.createElement("div");
       listItemsContainer.classList.add("list-items");
 
-      list.items.forEach((item) =>
-        createListItem(list, item, listItemsContainer)
-      );
+      // Add drag and drop handlers for the list container
+      listItemsContainer.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const draggingItem = document.querySelector(".dragging");
+        if (!draggingItem) return;
+
+        // If the container is empty or we're hovering at the bottom
+        const items = Array.from(listItemsContainer.children);
+        const lastItem = items[items.length - 1];
+
+        if (!items.length || (lastItem && e.clientY > lastItem.getBoundingClientRect().bottom)) {
+          removePlaceholders();
+          const placeholder = createPlaceholder();
+          listItemsContainer.appendChild(placeholder);
+        }
+      });
+
+      listItemsContainer.addEventListener("dragleave", () => {
+        listItemsContainer.classList.remove("drop-highlight");
+      });
+
+      listItemsContainer.addEventListener("drop", (e) => {
+        e.preventDefault();
+
+        try {
+          const { itemId, listId } = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+          // Find source list and item
+          const sourceList = appData
+            .flatMap(p => p.lists)
+            .find(l => l.id === listId);
+          const draggedItem = sourceList.items.find(i => i.id === itemId);
+
+          if (!draggedItem) return;
+
+          // Remove item from source list
+          sourceList.items = sourceList.items.filter(i => i.id !== itemId);
+
+          // Find the insertion point based on the placeholder position
+          const placeholder = listItemsContainer.querySelector('.drop-placeholder');
+          if (placeholder) {
+            const items = Array.from(listItemsContainer.children);
+            const placeholderIndex = items.indexOf(placeholder);
+            // If placeholder exists, insert at its position
+            list.items.splice(placeholderIndex, 0, draggedItem);
+          } else {
+            // If no placeholder (empty list), add to the end
+            list.items.push(draggedItem);
+          }
+
+          saveData();
+          renderProjects();
+        } catch (err) {
+          console.error("Error during drag and drop:", err);
+        }
+      });
+
+      // Ensure list.items exists
+      if (!list.items) list.items = [];
+
+      list.items.forEach((item) => createListItem(list, item, listItemsContainer));
 
       listDiv.appendChild(header);
       listDiv.appendChild(listItemsContainer);
@@ -473,10 +639,11 @@
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = item.completed;
+        checkbox.classList.add("todo-checkbox");
         checkbox.addEventListener("change", () => {
           item.completed = checkbox.checked;
+          itemNameEl.classList.toggle("strikethrough", item.completed);
           saveData();
-          renderProjects();
         });
 
         const itemNameEl = createEditableElement(
@@ -488,6 +655,9 @@
           }
         );
         itemNameEl.classList.add("item-name");
+        if (item.completed) {
+          itemNameEl.classList.add("strikethrough");
+        }
 
         itemDiv.appendChild(checkbox);
         itemDiv.appendChild(itemNameEl);
@@ -503,9 +673,7 @@
         itemDiv.appendChild(itemNameEl);
       }
 
-      const deleteItemButton = document.createElement("button");
-      deleteItemButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-      deleteItemButton.addEventListener("click", () => {
+      const deleteItemButton = createDeleteButton(() => {
         list.items = list.items.filter((i) => i.id !== item.id);
         saveData();
         renderProjects();
@@ -514,6 +682,7 @@
       itemDiv.appendChild(deleteItemButton);
       container.appendChild(itemDiv);
 
+      // Updated drag and drop handlers
       itemDiv.addEventListener("dragstart", (e) => {
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", JSON.stringify({
@@ -521,27 +690,55 @@
           listId: list.id
         }));
         itemDiv.classList.add("dragging");
+
+        // Remove any existing placeholders
+        removePlaceholders();
       });
 
       itemDiv.addEventListener("dragend", () => {
         itemDiv.classList.remove("dragging");
-        document.querySelectorAll(".list-item").forEach(item => {
-          item.classList.remove("drop-highlight");
+        // Remove any existing placeholders and shift classes
+        removePlaceholders();
+        document.querySelectorAll('.shift-up, .shift-down').forEach(el => {
+          el.classList.remove('shift-up', 'shift-down');
         });
       });
 
       itemDiv.addEventListener("dragover", (e) => {
         e.preventDefault();
-        itemDiv.classList.add("drop-highlight");
+        const draggingItem = document.querySelector(".dragging");
+        if (!draggingItem || draggingItem === itemDiv) return;
+
+        removePlaceholders();
+
+        const rect = itemDiv.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+
+        if (e.clientY < midY) {
+          // Insert placeholder before this item
+          const placeholder = createPlaceholder();
+          itemDiv.before(placeholder);
+          // Shift this and following items down
+          itemDiv.classList.add('shift-down');
+        } else {
+          // Insert placeholder after this item
+          const placeholder = createPlaceholder();
+          itemDiv.after(placeholder);
+          // Shift following items down
+          const nextSibling = itemDiv.nextElementSibling;
+          if (nextSibling && !nextSibling.classList.contains('drop-placeholder')) {
+            nextSibling.classList.add('shift-down');
+          }
+        }
       });
 
       itemDiv.addEventListener("dragleave", () => {
-        itemDiv.classList.remove("drop-highlight");
+        itemDiv.classList.remove("drop-highlight-top", "drop-highlight-bottom");
       });
 
       itemDiv.addEventListener("drop", (e) => {
         e.preventDefault();
-        itemDiv.classList.remove("drop-highlight");
+        e.stopPropagation(); // Prevent event from bubbling to container
 
         try {
           const { itemId, listId } = JSON.parse(e.dataTransfer.getData("text/plain"));
@@ -569,8 +766,20 @@
           console.error("Error during drag and drop:", err);
         }
       });
+
       container.appendChild(itemDiv);
     }
+
+    function createPlaceholder() {
+      const placeholder = document.createElement('div');
+      placeholder.classList.add('drop-placeholder');
+      return placeholder;
+    }
+
+    function removePlaceholders() {
+      document.querySelectorAll('.drop-placeholder').forEach(el => el.remove());
+    }
+
     function renderProjects() {
       projectsContainer.innerHTML = "";
       appData.forEach((project) => createProject(project));
