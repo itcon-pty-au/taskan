@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban App</title>
+    <style>
+        /* Basic styles for the kanban app */
+        #lists-container {
+            display: flex;
+            gap: 10px; /* Space between lists */
+        }
+
+        .list {
+            border: 1px solid #ccc; 
+            padding: 10px;
+            width: 200px; /* Fixed width for lists */
+            background-color: #f9f9f9;
+        }
+
+        .list-item {
+            border: 1px solid #bbb;
+            padding: 8px;
+            margin: 5px 0; /* Space between items */
+            cursor: move; /* Cursor indicates draggable items */
+            background-color: #fff;
+        }
+
+        /* Highlight styles for visual feedback */
+        .highlight {
+            outline: 2px dashed #007bff; /* Dashed outline for highlight effect */
+        }
+    </style>
+</head>
+<body>
+    <div id="lists-container">
+        <div class="list">
+            <div class="list-item" draggable="true">Item 1</div>
+            <div class="list-item" draggable="true">Item 2</div>
+        </div>
+        <div class="list">
+            <div class="list-item" draggable="true">Item 3</div>
+            <div class="list-item" draggable="true">Item 4</div>
+        </div>
+    </div>
+
+    <script>
+        const listsContainer = document.getElementById('lists-container');
+        let draggedItem = null;
+        let placeholder = null;
+
+        // Listen for drag start event
+        listsContainer.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('list-item')) {
+                draggedItem = e.target; // Store reference to the dragged item
+                setTimeout(() => {
+                    draggedItem.style.display = 'none'; // Hide the dragged item during drag
+                }, 0);
+            }
+        });
+
+        // Allow dropping by preventing default behavior
+        listsContainer.addEventListener('dragover', (e) => {
+            e.preventDefault(); 
+        });
+
+        // Handle the drop event
+        listsContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedItem) {
+                const target = e.target;
+
+                // Check if dropped on a list
+                if (target.classList.contains('list')) {
+                    target.appendChild(draggedItem); // Move dragged item to the new list
+                }
+                // Check if dropped between list items
+                else if (target.classList.contains('list-item')) {
+                    const bounding = target.getBoundingClientRect();
+                    const offset = bounding.y + bounding.height / 2;
+                    const isAbove = e.clientY < offset; // Determine if dropped above or below
+                    
+                    // Insert the dragged item above/below the target
+                    if (isAbove) {
+                        target.parentElement.insertBefore(draggedItem, target); // Insert before the target item
+                    } else {
+                        target.parentElement.insertBefore(draggedItem, target.nextSibling); // Insert after the target item
+                    }
+                }
+                resetDrag(); // Reset dragged item and placeholder
+            }
+        });
+
+        // Handle the drag enter effect
+        listsContainer.addEventListener('dragenter', (e) => {
+            if (e.target.classList.contains('list-item') && !placeholder) {
+                placeholder = document.createElement('div'); // Create and set up placeholder
+                placeholder.classList.add('list-item', 'highlight'); // Add highlight effect
+                placeholder.innerText = draggedItem.innerText; // Show the text from the dragged item
+                e.target.parentElement.insertBefore(placeholder, e.target); // Insert placeholder
+            }
+        });
+
+        // Handle the drag leave effect
+        listsContainer.addEventListener('dragleave', (e) => {
+            if (e.target === placeholder) {
+                e.target.remove(); // Remove placeholder when leaving
+                placeholder = null; // Reset placeholder reference
+            }
+        });
+
+        // Cleanup on drag end
+        listsContainer.addEventListener('dragend', () => {
+            resetDrag(); // Reset dragged item and placeholder
+        });
+
+        function resetDrag() {
+            if (placeholder) {
+                placeholder.remove(); // Remove placeholder if exists
+                placeholder = null; // Reset placeholder reference
+            }
+            if (draggedItem) {
+                draggedItem.style.display = 'block'; // Show dragged item again
+                draggedItem = null; // Reset dragged item
+            }
+        }
+    </script>
+</body>
+</html>
