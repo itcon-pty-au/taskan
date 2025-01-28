@@ -12,186 +12,216 @@
       outline: none;
     }
 
-      .editable:focus {
-        border-bottom: 2px solid #007bff;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        font-size: 16px;
-        background-color: #f4f4f4;
-      }
-      h1 {
-        margin: 0;
-        padding: 15px;
-        background-color: #007bff;
-        color: white;
-      }
-      .container {
-        padding: 15px;
-      }
-      .top-menu {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-      .top-menu button {
-        padding: 5px 10px;
-        background-color: #555555;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .top-menu button:hover {
-        background-color: #0056b3;
-      }
-      .projects-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-      }
-      .project {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        background-color: #fafafa;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-      .project-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .project-header .editable {
-        cursor: pointer;
-        border: none;
-        background-color: transparent;
-        font-size: 1.2em;
-        padding: 5px;
-        outline: none;
-        transition: border-bottom 0.2s;
-      }
-      .project-header .editable:focus {
-        border-bottom: 2px solid #007bff;
-      }
-      .lists-container {
-        display: flex;
-        gap: 15px;
-      }
-      .highlight {
-        border: 2px dashed #007bff;
-        background-color: #f0f8ff;
-      }
-      .list {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background-color: #ffffff;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .list-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-        gap: 5px;
-      }
-      .list-header .rearrange-buttons {
-        display: flex;
-        gap: 5px;
-      }
-      .list-items {
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .list-item {
-        background-color: #e9ecef;
-        padding: 10px;
-        border-radius: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.2s;
-        cursor: move; /* Indicates draggable items */
-      }
-      .list-item:hover {
-        background-color: #dee2e6;
-      }
-      .drop-highlight {
-        border: 2px dashed #007bff; /* Highlight effect when an item is over this area */
-        background-color: #f0f8ff;
-      }
-      .list-item.todo-item {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-      .list-item.todo-item .item-name {
-        flex: 1;
-      }
-      .list-item.todo-item .item-name.strikethrough {
-        text-decoration: line-through;
-        color: gray;
-      }
-      .add-item-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 10px;
-      }
-      .add-item {
-        cursor: pointer;
-        background: none;
-        text-align: center;
-        padding: 10px;
-        border: dashed 1px;
-        border-radius: 5px;
-        color: #6c757d;
-        flex: 1;
-      }
-      .add-item:hover {
-        background-color: #f8f9fa;
-      }
+    .editable:focus {
+      border-bottom: 2px solid #007bff;
+    }
 
-      .add-list {
-        cursor: pointer;
-        background: none;
-        text-align: center;
-        padding: 10px;
-        border: dashed 1px;
-        border-radius: 5px;
-        color: #6c757d;
-      }
-      .add-list:hover {
-        background-color: #f8f9fa;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="top-menu">
-        <button id="importDataBtn">Import</button>
-        <button id="exportDataBtn">Export</button>
-        <button id="addProjectBtn">
-          <i class="fas fa-plus"></i> Add Project
-        </button>
-      </div>
-      <div id="projectsContainer" class="projects-container"></div>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      font-size: 16px;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      margin: 0;
+      padding: 15px;
+      background-color: #007bff;
+      color: white;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    .top-menu {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .top-menu button {
+      padding: 5px 10px;
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .top-menu button:hover {
+      background-color: #0056b3;
+    }
+
+    .projects-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background-color: #ffffff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .project {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #fafafa;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .project-header .editable {
+      cursor: pointer;
+      border: none;
+      background-color: transparent;
+      font-size: 1.2em;
+      padding: 5px;
+      outline: none;
+      transition: border-bottom 0.2s;
+    }
+
+    .project-header .editable:focus {
+      border-bottom: 2px solid #007bff;
+    }
+
+    .lists-container {
+      display: flex;
+      gap: 15px;
+    }
+
+    .highlight {
+      border: 2px dashed #007bff;
+      background-color: #f0f8ff;
+    }
+
+    .list {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #ffffff;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      gap: 5px;
+    }
+
+    .list-header .rearrange-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .list-items {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .list-item {
+      background-color: #e9ecef;
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+      cursor: move;
+      /* Indicates draggable items */
+    }
+
+    .list-item:hover {
+      background-color: #dee2e6;
+    }
+
+    .drop-highlight {
+      border: 2px dashed #007bff;
+      /* Highlight effect when an item is over this area */
+      background-color: #f0f8ff;
+    }
+
+    .list-item.todo-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .list-item.todo-item .item-name {
+      flex: 1;
+    }
+
+    .list-item.todo-item .item-name.strikethrough {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .add-item-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .add-item {
+      cursor: pointer;
+      background: none;
+      text-align: center;
+      padding: 10px;
+      border: dashed 1px;
+      border-radius: 5px;
+      color: #6c757d;
+      flex: 1;
+    }
+
+    .add-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .add-list {
+      cursor: pointer;
+      background: none;
+      text-align: center;
+      padding: 10px;
+      border: dashed 1px;
+      border-radius: 5px;
+      color: #6c757d;
+    }
+
+    .add-list:hover {
+      background-color: #f8f9fa;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top-menu">
+      <button id="importDataBtn">Import</button>
+      <button id="exportDataBtn">Export</button>
+      <button id="addProjectBtn">
+        <i class="fas fa-plus"></i> Add Project
+      </button>
     </div>
+    <div id="projectsContainer" class="projects-container"></div>
+  </div>
 
   <script>
     const projectsContainer = document.getElementById("projectsContainer");
@@ -230,8 +260,8 @@
         }
       });
 
-        return el;
-      }
+      return el;
+    }
 
     function createProject(project) {
       const projectDiv = document.createElement("div");
@@ -292,14 +322,14 @@
         }
       });
 
-        const deleteProjectButton = document.createElement("button");
-        deleteProjectButton.innerHTML =
-          '<i class="fa-regular fa-trash-can"></i>';
-        deleteProjectButton.addEventListener("click", () => {
-          appData = appData.filter((p) => p.id !== project.id);
-          saveData();
-          renderProjects();
-        });
+      const deleteProjectButton = document.createElement("button");
+      deleteProjectButton.innerHTML =
+        '<i class="fa-regular fa-trash-can"></i>';
+      deleteProjectButton.addEventListener("click", () => {
+        appData = appData.filter((p) => p.id !== project.id);
+        saveData();
+        renderProjects();
+      });
 
       header.appendChild(projectNameEl);
       [collapseBtn, moveUpBtn, moveDownBtn, deleteProjectButton].forEach(
@@ -351,13 +381,13 @@
       );
       listNameEl.style.flexGrow = "1";
 
-        const deleteListButton = document.createElement("button");
-        deleteListButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-        deleteListButton.addEventListener("click", () => {
-          project.lists = project.lists.filter((l) => l.id !== list.id);
-          saveData();
-          renderProjects();
-        });
+      const deleteListButton = document.createElement("button");
+      deleteListButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+      deleteListButton.addEventListener("click", () => {
+        project.lists = project.lists.filter((l) => l.id !== list.id);
+        saveData();
+        renderProjects();
+      });
 
       const rearrangeButtons = document.createElement("div");
       rearrangeButtons.classList.add("rearrange-buttons");
@@ -423,9 +453,9 @@
       const listItemsContainer = document.createElement("div");
       listItemsContainer.classList.add("list-items");
 
-        list.items.forEach((item) =>
-          createListItem(list, item, listItemsContainer)
-        );
+      list.items.forEach((item) =>
+        createListItem(list, item, listItemsContainer)
+      );
 
       listDiv.appendChild(header);
       listDiv.appendChild(listItemsContainer);
@@ -440,24 +470,24 @@
       if (item.type === "todo") {
         itemDiv.classList.add("todo-item");
 
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = item.completed;
-          checkbox.addEventListener("change", () => {
-            item.completed = checkbox.checked;
-            saveData();
-            renderProjects();
-          });
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.completed;
+        checkbox.addEventListener("change", () => {
+          item.completed = checkbox.checked;
+          saveData();
+          renderProjects();
+        });
 
-          const itemNameEl = createEditableElement(
-            "div",
-            item.name,
-            (newName) => {
-              item.name = newName;
-              saveData();
-            }
-          );
-          itemNameEl.classList.add("item-name");
+        const itemNameEl = createEditableElement(
+          "div",
+          item.name,
+          (newName) => {
+            item.name = newName;
+            saveData();
+          }
+        );
+        itemNameEl.classList.add("item-name");
 
         itemDiv.appendChild(checkbox);
         itemDiv.appendChild(itemNameEl);
@@ -473,67 +503,78 @@
         itemDiv.appendChild(itemNameEl);
       }
 
-        const deleteItemButton = document.createElement("button");
-        deleteItemButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-        deleteItemButton.addEventListener("click", () => {
-          list.items = list.items.filter((i) => i.id !== item.id);
-          saveData();
-          renderProjects();
-        });
+      const deleteItemButton = document.createElement("button");
+      deleteItemButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+      deleteItemButton.addEventListener("click", () => {
+        list.items = list.items.filter((i) => i.id !== item.id);
+        saveData();
+        renderProjects();
+      });
 
       itemDiv.appendChild(deleteItemButton);
       container.appendChild(itemDiv);
 
-        // Drag-and-drop functionality for list items
-        itemDiv.addEventListener("dragstart", (e) => {
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", item.id); // Pass item ID
-          itemDiv.classList.add("dragging"); // Add visual indication
+      itemDiv.addEventListener("dragstart", (e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          itemId: item.id,
+          listId: list.id
+        }));
+        itemDiv.classList.add("dragging");
+      });
+
+      itemDiv.addEventListener("dragend", () => {
+        itemDiv.classList.remove("dragging");
+        document.querySelectorAll(".list-item").forEach(item => {
+          item.classList.remove("drop-highlight");
         });
+      });
 
-        itemDiv.addEventListener("dragend", () => {
-          itemDiv.classList.remove("dragging"); // Remove visual indication
-        });
+      itemDiv.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        itemDiv.classList.add("drop-highlight");
+      });
 
-        itemDiv.addEventListener("dragover", (e) => {
-          e.preventDefault(); // Allow drop
-          itemDiv.classList.add("drop-highlight"); // Highlight when dragging over
-        });
+      itemDiv.addEventListener("dragleave", () => {
+        itemDiv.classList.remove("drop-highlight");
+      });
 
-        itemDiv.addEventListener("dragleave", () => {
-          itemDiv.classList.remove("drop-highlight"); // Remove highlight
-        });
+      itemDiv.addEventListener("drop", (e) => {
+        e.preventDefault();
+        itemDiv.classList.remove("drop-highlight");
 
-        itemDiv.addEventListener("drop", (e) => {
-          e.preventDefault();
-          const draggedItemId = e.dataTransfer.getData("text/plain");
-          const draggedItem = list.items.find((i) => i.id == draggedItemId);
-          if (draggedItem && draggedItem.id !== item.id) {
-            // Check not dragging the same item
-            const bounding = target.getBoundingClientRect();
-            const offset = bounding.y + bounding.height / 2;
-            const isAbove = e.clientY < offset; // Determine if dropped above or below
+        try {
+          const { itemId, listId } = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-            // Insert the dragged item above/below the target
-            if (isAbove) {
-              target.parentElement.insertBefore(draggedItem, target); // Insert before the target item
-            } else {
-              target.parentElement.insertBefore(
-                draggedItem,
-                target.nextSibling
-              ); // Insert after the target item
-            }
-            saveData();
-            renderProjects();
-          }
-          itemDiv.classList.remove("drop-highlight"); // Remove highlight after drop
-        });
-      }
+          // Find source list and item
+          const sourceList = appData
+            .flatMap(p => p.lists)
+            .find(l => l.id === listId);
+          const draggedItem = sourceList.items.find(i => i.id === itemId);
 
-      function renderProjects() {
-        projectsContainer.innerHTML = "";
-        appData.forEach((project) => createProject(project));
-      }
+          if (!draggedItem || draggedItem.id === item.id) return;
+
+          // Remove item from source list
+          sourceList.items = sourceList.items.filter(i => i.id !== itemId);
+
+          // Find target position and insert
+          const targetIndex = list.items.indexOf(item);
+          const rect = itemDiv.getBoundingClientRect();
+          const dropPosition = e.clientY < rect.top + rect.height / 2 ? targetIndex : targetIndex + 1;
+
+          list.items.splice(dropPosition, 0, draggedItem);
+          saveData();
+          renderProjects();
+        } catch (err) {
+          console.error("Error during drag and drop:", err);
+        }
+      });
+      container.appendChild(itemDiv);
+    }
+    function renderProjects() {
+      projectsContainer.innerHTML = "";
+      appData.forEach((project) => createProject(project));
+    }
 
     addProjectBtn.addEventListener("click", () => {
       const newProject = { id: Date.now(), name: "New Project", lists: [] };
