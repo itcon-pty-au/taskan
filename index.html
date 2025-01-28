@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project Tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Add Coloris CSS and JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
+  <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
   <style>
     /* Add these CSS variables at the start of the style section */
     :root {
@@ -61,10 +64,6 @@
       cursor: pointer;
     }
 
-    .top-menu button:hover {
-      background-color: #000;
-    }
-
     .projects-container {
       display: flex;
       flex-direction: column;
@@ -118,6 +117,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      overflow: hidden;  /* Add this to prevent corner gaps */
     }
 
     .list-header {
@@ -128,6 +128,7 @@
       padding: 10px;
       border-bottom: 1px solid var(--border-color);
       gap: 5px;
+      cursor: move; /* Add cursor to indicate draggable */
     }
 
     .list-header .rearrange-buttons {
@@ -152,6 +153,7 @@
       transition: background-color 0.2s;
       cursor: move;
       /* Indicates draggable items */
+      position: relative;  /* For positioning the hover menu */
     }
 
     .list-item:hover {
@@ -197,7 +199,7 @@
     }
 
     .add-item:hover {
-      background-color: #f8f9fa;
+      background-color:var(--item-hover);
     }
 
     .add-list {
@@ -211,7 +213,7 @@
     }
 
     .add-list:hover {
-      background-color: #f8f9fa;
+      background-color: var(--item-hover);;
     }
 
     .dragging {
@@ -317,6 +319,144 @@
     [data-theme="dark"] #themeToggleBtn:hover {
       background-color: #666;
     }
+
+    /* Add styles for color picker button */
+    .color-picker-btn {
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 5px 10px;
+      margin-right: 5px;
+    }
+
+    .color-picker-btn i {
+      color: white; /* Default color */
+      transition: color 0.2s ease;
+    }
+
+    .color-picker-btn:hover {
+      background-color: #000;
+    }
+
+    /* Style the Coloris popup to match theme */
+    .clr-picker {
+      z-index: 1000;
+    }
+
+    /* Add styles for hover menu */
+    .item-hover-menu {
+      position: absolute;
+      top: -20px;  /* Position above the card */
+      right: 10px;
+      background-color: var(--card-bg);
+      padding: 3px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: none;  /* Hidden by default */
+      gap: 5px;
+      z-index: 100;
+    }
+
+    .list-item:hover .item-hover-menu {
+      display: flex;  /* Show on item hover */
+    }
+
+    /* Update button styles for hover menu */
+    .item-hover-menu button {
+      padding: 3px 6px;
+      background-color: var(--item-bg);
+      color: var(--text-color);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+
+    .item-hover-menu .color-picker-btn {
+      border: 1px solid var(--text-color);
+    }
+
+    .item-hover-menu button:hover {
+      background-color: var(--item-hover);
+    }
+
+    /* Remove the old add-list styles */
+    .add-list {
+      display: none; /* Hide the old add list div */
+    }
+
+    /* Add style for the new add list button */
+    .add-list-btn {
+      padding: 5px 10px;
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .add-list-btn:hover {
+      background-color: #000;
+    }
+
+    [data-theme="dark"] .add-list-btn:hover {
+      background-color: #666;
+    }
+
+    /* Add standardized button styles */
+    .project-header button,
+    .list-header button {
+      padding: 5px 10px;
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;  /* Set fixed width */
+      height: 32px; /* Set fixed height */
+      margin-left: 5px;
+      transition: width 0.2s ease; /* Add smooth transition for width changes */
+    }
+
+    /* Add style for delete confirmation state */
+    .project-header button.delete-confirm,
+    .list-header button.delete-confirm {
+      width: auto; /* Allow width to adjust to content */
+      padding: 5px 10px; /* Add some padding for the text */
+    }
+
+    .project-header button:hover,
+    .list-header button:hover {
+      background-color: #000;
+    }
+
+    [data-theme="dark"] .project-header button:hover,
+    [data-theme="dark"] .list-header button:hover {
+      background-color: #666;
+    }
+
+    /* Remove individual button styles that might conflict */
+    .add-list-btn,
+    .collapse-btn,
+    #themeToggleBtn {
+      /* Remove any specific padding/size styles */
+    }
+
+    /* Ensure icons are centered */
+    .project-header button i,
+    .list-header button i {
+      font-size: 14px; /* Standardize icon size */
+    }
+
+    .list.dragging {
+      opacity: 0.5;
+      cursor: move;
+    }
   </style>
 </head>
 
@@ -378,12 +518,7 @@
     function createDeleteButton(deleteAction) {
       const deleteButton = document.createElement("button");
       deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-      deleteButton.style.backgroundColor = "#555555";
-      deleteButton.style.color = "white";
-      deleteButton.style.border = "none";
-      deleteButton.style.borderRadius = "4px";
-      deleteButton.style.cursor = "pointer";
-      deleteButton.style.padding = "5px 10px";
+      deleteButton.style.marginLeft = "5px";
 
       let confirmTimeout;
       let isConfirming = false;
@@ -408,14 +543,6 @@
         }
       });
 
-      deleteButton.addEventListener("mouseover", () => {
-        deleteButton.style.backgroundColor = "#000";
-      });
-
-      deleteButton.addEventListener("mouseout", () => {
-        deleteButton.style.backgroundColor = "#555555";
-      });
-
       return deleteButton;
     }
 
@@ -436,6 +563,17 @@
         }
       );
       projectNameEl.style.flexGrow = "1";
+
+      // Add the new Add List button
+      const addListBtn = document.createElement("button");
+      addListBtn.classList.add("add-list-btn");
+      addListBtn.innerHTML = '<i class="fas fa-plus"></i>';
+      addListBtn.addEventListener("click", () => {
+        const newList = { id: Date.now(), name: "New List", items: [] };
+        project.lists.push(newList);
+        saveData();
+        renderProjects();
+      });
 
       const collapseBtn = document.createElement("button");
       collapseBtn.classList.add("collapse-btn");
@@ -485,7 +623,8 @@
       });
 
       header.appendChild(projectNameEl);
-      [collapseBtn, moveUpBtn, moveDownBtn, deleteProjectButton].forEach(
+      // Add the new button before the collapse button
+      [addListBtn, collapseBtn, moveUpBtn, moveDownBtn, deleteProjectButton].forEach(
         (btn) => {
           btn.style.marginLeft = "5px";
           header.appendChild(btn);
@@ -499,18 +638,6 @@
       project.lists.forEach((list, index) =>
         createList(project, list, listsContainer, index, project.lists.length)
       );
-
-      const addListDiv = document.createElement("div");
-      addListDiv.classList.add("add-list");
-      addListDiv.textContent = "Add List";
-      addListDiv.addEventListener("click", () => {
-        const newList = { id: Date.now(), name: "New List", items: [] };
-        project.lists.push(newList);
-        saveData();
-        renderProjects();
-      });
-
-      listsContainer.appendChild(addListDiv);
 
       projectDiv.appendChild(header);
       projectDiv.appendChild(listsContainer);
@@ -675,7 +802,50 @@
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("list-item");
       itemDiv.setAttribute("draggable", "true");
+      
+      // Set background color if it exists
+      if (item.backgroundColor) {
+        itemDiv.style.backgroundColor = item.backgroundColor;
+      }
 
+      // Create hover menu
+      const hoverMenu = document.createElement("div");
+      hoverMenu.classList.add("item-hover-menu");
+
+      // Add color picker button to hover menu
+      const colorPickerBtn = document.createElement("button");
+      colorPickerBtn.classList.add("color-picker-btn");
+      colorPickerBtn.innerHTML = '<i class="fas fa-paintbrush"></i>';
+      colorPickerBtn.setAttribute("data-coloris", "");
+      
+      if (item.backgroundColor) {
+        colorPickerBtn.setAttribute("value", item.backgroundColor);
+        const icon = colorPickerBtn.querySelector('i');
+        icon.style.setProperty('color', item.backgroundColor, 'important');
+      }
+
+      colorPickerBtn.addEventListener("input", (e) => {
+        const color = e.target.value;
+        item.backgroundColor = color;
+        itemDiv.style.backgroundColor = color;
+        const icon = colorPickerBtn.querySelector('i');
+        icon.style.setProperty('color', color, 'important');
+        saveData();
+      });
+
+      // Create delete button
+      const deleteItemButton = createDeleteButton(() => {
+        list.items = list.items.filter((i) => i.id !== item.id);
+        saveData();
+        renderProjects();
+      });
+
+      // Add buttons to hover menu
+      hoverMenu.appendChild(colorPickerBtn);
+      hoverMenu.appendChild(deleteItemButton);
+      itemDiv.appendChild(hoverMenu);
+
+      // Create item content based on type
       if (item.type === "todo") {
         itemDiv.classList.add("todo-item");
 
@@ -716,13 +886,6 @@
         itemDiv.appendChild(itemNameEl);
       }
 
-      const deleteItemButton = createDeleteButton(() => {
-        list.items = list.items.filter((i) => i.id !== item.id);
-        saveData();
-        renderProjects();
-      });
-
-      itemDiv.appendChild(deleteItemButton);
       container.appendChild(itemDiv);
 
       // Updated drag and drop handlers
@@ -809,8 +972,6 @@
           console.error("Error during drag and drop:", err);
         }
       });
-
-      container.appendChild(itemDiv);
     }
 
     function createPlaceholder() {
@@ -826,6 +987,9 @@
     function renderProjects() {
       projectsContainer.innerHTML = "";
       appData.forEach((project) => createProject(project));
+      
+      // Use setInstance instead of init
+      Coloris.setInstance();
     }
 
     addProjectBtn.addEventListener("click", () => {
@@ -898,7 +1062,30 @@
       setTheme(newTheme);
     });
 
-    renderProjects();
+    document.addEventListener('DOMContentLoaded', () => {
+      // Configure Coloris
+      Coloris({
+        theme: 'default',
+        themeMode: 'dark',
+        formatToggle: false,
+        clearButton: true,
+        swatches: [
+          '#264653',
+          '#2a9d8f',
+          '#e9c46a',
+          '#f4a261',
+          '#e76f51',
+          '#ef476f',
+          '#ffd166',
+          '#06d6a0',
+          '#118ab2',
+          '#073b4c'
+        ]
+      });
+
+      // Initial render of projects
+      renderProjects();
+    });
   </script>
 </body>
 
