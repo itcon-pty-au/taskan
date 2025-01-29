@@ -6,9 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project Tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <!-- Add Coloris CSS and JS -->
+  <!-- Update these Coloris links to the latest version -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
   <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+  
+  <!-- Add Summernote dependencies -->
+  <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+  
   <style>
     /* Add these CSS variables at the start of the style section */
     :root {
@@ -128,7 +134,7 @@
       padding: 10px;
       border-bottom: 1px solid var(--border-color);
       gap: 5px;
-      cursor: move; /* Add cursor to indicate draggable */
+      position: relative; /* For absolute positioning of rearrange buttons */
     }
 
     .list-header .rearrange-buttons {
@@ -320,50 +326,39 @@
       background-color: #666;
     }
 
-    /* Add styles for color picker button */
-    .color-picker-btn {
-      background-color: #555555;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      padding: 5px 10px;
-      margin-right: 5px;
-    }
-
-    .color-picker-btn i {
-      color: white; /* Default color */
-      transition: color 0.2s ease;
-    }
-
-    .color-picker-btn:hover {
-      background-color: #000;
-    }
-
-    /* Style the Coloris popup to match theme */
-    .clr-picker {
-      z-index: 1000;
-    }
-
-    /* Add styles for hover menu */
+    /* Update hover menu styles */
     .item-hover-menu {
       position: absolute;
-      top: -20px;  /* Position above the card */
+      top: -20px;
       right: 10px;
       background-color: var(--card-bg);
       padding: 3px;
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: none;  /* Hidden by default */
+      display: none;  /* Change from flex to none */
       gap: 5px;
       z-index: 100;
+      align-items: center;
     }
 
+    /* Add hover state to show menu */
     .list-item:hover .item-hover-menu {
-      display: flex;  /* Show on item hover */
+      display: flex;  /* Show menu on hover */
     }
 
-    /* Update button styles for hover menu */
+    /* Hide the color input completely */
+    .item-hover-menu input[data-coloris] {
+      position: absolute;
+      visibility: hidden;
+      width: 0 !important;
+      height: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      pointer-events: none;
+      opacity: 0;
+    }
+
     .item-hover-menu button {
       padding: 3px 6px;
       background-color: var(--item-bg);
@@ -372,14 +367,27 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.9em;
-    }
-
-    .item-hover-menu .color-picker-btn {
-      border: 1px solid var(--text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
     }
 
     .item-hover-menu button:hover {
       background-color: var(--item-hover);
+    }
+
+    .item-hover-menu button i {
+      font-size: 14px;
+    }
+
+    /* Override any Coloris default styles */
+    .item-hover-menu button[data-coloris] {
+      padding: 3px 6px !important;
+      width: 28px !important;
+      height: 28px !important;
+      background-color: var(--item-bg) !important;
     }
 
     /* Remove the old add-list styles */
@@ -457,20 +465,226 @@
       opacity: 0.5;
       cursor: move;
     }
+
+    /* Update top menu button hover styles */
+    .top-menu button:hover {
+      background-color: #000;
+    }
+
+    [data-theme="dark"] .top-menu button:hover {
+      background-color: #666;
+    }
+
+    /* Add styles for coffee button */
+    #coffeeBtn {
+      color: #fff;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    /* Style for list rearrange buttons */
+    .rearrange-buttons {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      position: absolute;
+      left: 10px;
+      display: flex;
+      gap: 5px;
+      z-index: 1; /* Ensure buttons appear above the title */
+    }
+
+    .list-header {
+      position: relative; /* For absolute positioning of rearrange buttons */
+    }
+
+    .list-header .editable {
+      transition: margin-left 0.2s ease;
+      margin-left: 0;
+    }
+
+    .list-header:hover .editable {
+      margin-left: 85px; /* Increased margin to accommodate two buttons + gap */
+    }
+
+    .list-header:hover .rearrange-buttons {
+      opacity: 1;
+    }
+
+    /* Disabled button styles */
+    button:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    /* Update editor popup styles */
+    .editor-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 800px;
+      height: 80%;
+      background: var(--card-bg);
+      z-index: 1000;
+      padding: 0;  /* Remove padding */
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      flex-direction: column;  /* Stack children vertically */
+    }
+
+    .editor-popup .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;  /* Add padding to header instead */
+      border-bottom: 1px solid var(--border-color);
+      background: var(--header-bg);
+      border-radius: 8px 8px 0 0;
+    }
+
+    /* Add styles for the editor container */
+    .editor-popup #summernote {
+      flex: 1;  /* Fill remaining space */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Make Summernote fill the container */
+    .editor-popup .note-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-popup .note-editing-area {
+      flex: 1;
+    }
+
+    .editor-popup .note-editable {
+      height: 100% !important;  /* Force full height */
+    }
+
+    /* Update Summernote theme styles */
+    .note-editor .note-editable {
+      background-color: var(--card-bg) !important;
+      color: var(--text-color) !important;
+    }
+
+    .note-editor .note-toolbar {
+      background-color: var(--header-bg) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .note-editor .note-toolbar .note-btn {
+      background-color: var(--item-bg) !important;
+      border-color: var(--border-color) !important;
+      color: var(--text-color) !important;
+    }
+
+    .note-editor .note-toolbar .note-btn:hover {
+      background-color: var(--item-hover) !important;
+    }
+
+    .note-editor.note-frame {
+      border-color: var(--border-color) !important;
+    }
+
+    .note-editor .note-status-output,
+    .note-editor .note-statusbar {
+      background-color: var(--header-bg) !important;
+      border-color: var(--border-color) !important;
+      color: var(--text-color) !important;
+    }
+
+    /* Style dropdowns */
+    .note-editor .note-dropdown-menu {
+      background-color: var(--card-bg) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .note-editor .note-dropdown-item {
+      color: var(--text-color) !important;
+    }
+
+    .note-editor .note-dropdown-item:hover {
+      background-color: var(--item-hover) !important;
+    }
+
+    /* Override Coloris default styles */
+    [data-coloris] {
+      padding: 5px !important;
+      width: auto !important;
+      height: auto !important;
+      border: none !important;
+      background: none !important;
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    /* Hide the default Coloris preview box */
+    [data-coloris]::before {
+      display: none !important;
+    }
+
+    /* Style our custom icon */
+    .color-picker-btn .fa-paintbrush {
+      font-size: 14px !important;
+      color: var(--text-color) !important;
+      display: inline-block !important;
+      pointer-events: none !important;
+    }
+
+    /* Add new CSS for item links */
+    .item-link {
+      color: #0066cc;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .item-link:hover {
+      color: #0052a3;
+    }
+
+    /* Prevent link styling when editing */
+    [contenteditable="true"] .item-link {
+      color: inherit;
+      text-decoration: none;
+      cursor: text;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
     <div class="top-menu">
-      <button id="themeToggleBtn">
+      <button id="themeToggleBtn" title="Toggle Theme">
         <i class="fas fa-sun"></i>
       </button>
-      <button id="addProjectBtn">New Project</button>
-      <button id="importDataBtn">Import</button>
-      <button id="exportDataBtn">Export</button>
+      <button id="addProjectBtn" title="Create New Project">New Project</button>
+      <button id="importDataBtn" title="Import Data">Import</button>
+      <button id="exportDataBtn" title="Export Data">Export</button>
+      <a href="https://buymeacoffee.com/itcon" target="_blank" id="coffeeBtn">
+        <button title="Buy me a coffee">
+          <i class="fas fa-mug-hot"></i>
+        </button>
+      </a>
     </div>
     <div id="projectsContainer" class="projects-container"></div>
+  </div>
+
+  <!-- Add editor popup HTML -->
+  <div class="editor-overlay"></div>
+  <div class="editor-popup">
+    <div class="editor-header">
+      <h3>Edit Note</h3>
+      <button class="close-btn">Close</button>
+    </div>
+    <div id="summernote"></div>
   </div>
 
   <script>
@@ -490,25 +704,33 @@
     function createEditableElement(tag, value, onChange) {
       const el = document.createElement(tag);
       el.classList.add("editable");
-      el.textContent = value;
+      el.innerHTML = formatTextWithLinks(value);
 
       el.contentEditable = false;
 
       el.addEventListener("dblclick", () => {
         el.contentEditable = true;
+        el.textContent = el.textContent;
         el.focus();
         document.execCommand("selectAll", false, null);
       });
 
       el.addEventListener("blur", () => {
         el.contentEditable = false;
-        onChange(el.textContent);
+        const newValue = el.textContent;
+        onChange(newValue);
+        el.innerHTML = formatTextWithLinks(newValue);
       });
 
       el.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
-          el.blur();
-          event.preventDefault();
+          if (event.shiftKey) {
+            event.preventDefault();
+            document.execCommand('insertLineBreak');
+          } else {
+            event.preventDefault();
+            el.blur();
+          }
         }
       });
 
@@ -518,26 +740,25 @@
     function createDeleteButton(deleteAction) {
       const deleteButton = document.createElement("button");
       deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-      deleteButton.style.marginLeft = "5px";
-
+      deleteButton.title = "Delete";  // Default title
+      
       let confirmTimeout;
       let isConfirming = false;
 
       deleteButton.addEventListener("click", () => {
         if (isConfirming) {
-          // Second click - perform deletion
           clearTimeout(confirmTimeout);
           deleteAction();
         } else {
-          // First click - enter confirmation state
           isConfirming = true;
           deleteButton.innerHTML = 'Sure?';
+          deleteButton.title = "Click again to confirm deletion";
           deleteButton.classList.add('delete-confirm');
 
           confirmTimeout = setTimeout(() => {
-            // Reset after 5 seconds
             isConfirming = false;
             deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+            deleteButton.title = "Delete";
             deleteButton.classList.remove('delete-confirm');
           }, 5000);
         }
@@ -568,59 +789,31 @@
       const addListBtn = document.createElement("button");
       addListBtn.classList.add("add-list-btn");
       addListBtn.innerHTML = '<i class="fas fa-plus"></i>';
-      addListBtn.addEventListener("click", () => {
-        const newList = { id: Date.now(), name: "New List", items: [] };
-        project.lists.push(newList);
-        saveData();
-        renderProjects();
-      });
-
+      addListBtn.title = "Add New List";
+      
       const collapseBtn = document.createElement("button");
       collapseBtn.classList.add("collapse-btn");
       collapseBtn.innerHTML = project.collapsed
         ? '<i class="fas fa-chevron-down"></i>'
         : '<i class="fas fa-chevron-up"></i>';
-      collapseBtn.addEventListener("click", () => {
-        project.collapsed = !project.collapsed;
-        saveData();
-        renderProjects();
-      });
+      collapseBtn.title = project.collapsed ? "Expand Project" : "Collapse Project";
 
       const moveUpBtn = document.createElement("button");
       moveUpBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-      moveUpBtn.disabled = appData.indexOf(project) === 0;
-      moveUpBtn.addEventListener("click", () => {
-        const index = appData.indexOf(project);
-        if (index > 0) {
-          [appData[index], appData[index - 1]] = [
-            appData[index - 1],
-            appData[index],
-          ];
-          saveData();
-          renderProjects();
-        }
-      });
+      moveUpBtn.title = "Move Project Up";
+      moveUpBtn.disabled = appData.indexOf(project) === 0 || appData.length === 1;
 
       const moveDownBtn = document.createElement("button");
       moveDownBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
-      moveDownBtn.disabled = appData.indexOf(project) === appData.length - 1;
-      moveDownBtn.addEventListener("click", () => {
-        const index = appData.indexOf(project);
-        if (index < appData.length - 1) {
-          [appData[index], appData[index + 1]] = [
-            appData[index + 1],
-            appData[index],
-          ];
-          saveData();
-          renderProjects();
-        }
-      });
+      moveDownBtn.title = "Move Project Down";
+      moveDownBtn.disabled = appData.indexOf(project) === appData.length - 1 || appData.length === 1;
 
       const deleteProjectButton = createDeleteButton(() => {
         appData = appData.filter((p) => p.id !== project.id);
         saveData();
         renderProjects();
       });
+      deleteProjectButton.title = "Delete Project";
 
       header.appendChild(projectNameEl);
       // Add the new button before the collapse button
@@ -673,6 +866,7 @@
       if (index > 0) {
         const movePrevBtn = document.createElement("button");
         movePrevBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
+        movePrevBtn.title = "Move List Left";
         movePrevBtn.addEventListener("click", () => {
           [project.lists[index], project.lists[index - 1]] = [
             project.lists[index - 1],
@@ -687,6 +881,7 @@
       if (index < totalLists - 1) {
         const moveNextBtn = document.createElement("button");
         moveNextBtn.innerHTML = '<i class="fas fa-arrow-right"></i>';
+        moveNextBtn.title = "Move List Right";
         moveNextBtn.addEventListener("click", () => {
           [project.lists[index], project.lists[index + 1]] = [
             project.lists[index + 1],
@@ -703,6 +898,7 @@
 
       const addTodoButton = document.createElement("button");
       addTodoButton.innerHTML = '<i class="fa-regular fa-square-check"></i>';
+      addTodoButton.title = "New Todo";
       addTodoButton.addEventListener("click", () => {
         const newItem = {
           id: Date.now(),
@@ -713,15 +909,20 @@
         list.items.push(newItem);
         saveData();
         renderProjects();
+        // Open editor immediately for the new item
+        openEditor(newItem);
       });
 
       const addNoteButton = document.createElement("button");
       addNoteButton.innerHTML = '<i class="fa-regular fa-note-sticky"></i>';
+      addNoteButton.title = "New Note";
       addNoteButton.addEventListener("click", () => {
         const newItem = { id: Date.now(), name: "New Note", type: "note" };
         list.items.push(newItem);
         saveData();
         renderProjects();
+        // Open editor immediately for the new item
+        openEditor(newItem);
       });
 
       header.appendChild(addTodoButton);
@@ -812,40 +1013,53 @@
       const hoverMenu = document.createElement("div");
       hoverMenu.classList.add("item-hover-menu");
 
-      // Add color picker button to hover menu
-      const colorPickerBtn = document.createElement("button");
-      colorPickerBtn.classList.add("color-picker-btn");
-      colorPickerBtn.innerHTML = '<i class="fas fa-paintbrush"></i>';
-      colorPickerBtn.setAttribute("data-coloris", "");
+      // Create hidden input for color picker
+      const colorInput = document.createElement('input');
+      colorInput.type = 'text';
+      colorInput.setAttribute('data-coloris', '');
+      colorInput.style.display = 'none';
       
-      if (item.backgroundColor) {
-        colorPickerBtn.setAttribute("value", item.backgroundColor);
-        const icon = colorPickerBtn.querySelector('i');
-        icon.style.setProperty('color', item.backgroundColor, 'important');
-      }
-
-      colorPickerBtn.addEventListener("input", (e) => {
-        const color = e.target.value;
+      // Create color picker button
+      const colorPickerBtn = document.createElement("button");
+      colorPickerBtn.innerHTML = '<i class="fas fa-fill-drip"></i>';
+      colorPickerBtn.title = "Change Color";
+      
+      // When button is clicked, trigger the color input
+      colorInput.addEventListener('click', () => {
+        colorInput.click();
+      });
+      
+      // Add event listener for when color changes
+      colorInput.addEventListener('coloris:pick', event => {
+        const color = event.detail.color;
         item.backgroundColor = color;
         itemDiv.style.backgroundColor = color;
-        const icon = colorPickerBtn.querySelector('i');
-        icon.style.setProperty('color', color, 'important');
         saveData();
       });
 
-      // Create delete button
-      const deleteItemButton = createDeleteButton(() => {
+      // Create editor button
+      const editorBtn = document.createElement("button");
+      editorBtn.innerHTML = '<i class="fas fa-pen-to-square"></i>';
+      editorBtn.title = "Open Editor";
+      editorBtn.addEventListener("click", () => openEditor(item));
+
+      // Add buttons to hover menu in desired order
+      hoverMenu.appendChild(editorBtn);
+      hoverMenu.appendChild(colorPickerBtn);
+      hoverMenu.appendChild(colorInput);
+
+      // Create and add delete button
+      const deleteButton = createDeleteButton(() => {
         list.items = list.items.filter((i) => i.id !== item.id);
         saveData();
         renderProjects();
       });
+      hoverMenu.appendChild(deleteButton);
 
-      // Add buttons to hover menu
-      hoverMenu.appendChild(colorPickerBtn);
-      hoverMenu.appendChild(deleteItemButton);
       itemDiv.appendChild(hoverMenu);
 
-      // Create item content based on type
+      // Create item content div (non-editable)
+      const itemContent = document.createElement("div");
       if (item.type === "todo") {
         itemDiv.classList.add("todo-item");
 
@@ -855,37 +1069,24 @@
         checkbox.classList.add("todo-checkbox");
         checkbox.addEventListener("change", () => {
           item.completed = checkbox.checked;
-          itemNameEl.classList.toggle("strikethrough", item.completed);
+          itemContent.classList.toggle("strikethrough", item.completed);
           saveData();
         });
 
-        const itemNameEl = createEditableElement(
-          "div",
-          item.name,
-          (newName) => {
-            item.name = newName;
-            saveData();
-          }
-        );
-        itemNameEl.classList.add("item-name");
-        if (item.completed) {
-          itemNameEl.classList.add("strikethrough");
-        }
-
         itemDiv.appendChild(checkbox);
-        itemDiv.appendChild(itemNameEl);
-      } else {
-        const itemNameEl = createEditableElement(
-          "div",
-          item.name,
-          (newName) => {
-            item.name = newName;
-            saveData();
-          }
-        );
-        itemDiv.appendChild(itemNameEl);
+        
+        itemContent.classList.add("item-name");
+        if (item.completed) {
+          itemContent.classList.add("strikethrough");
+        }
       }
 
+      // Set content and make it clickable to open editor
+      itemContent.innerHTML = formatTextWithLinks(item.content ? stripHtml(item.content).substring(0, 100) + "..." : item.name);
+      itemContent.addEventListener("click", () => openEditor(item));
+      itemContent.style.cursor = "pointer";
+      
+      itemDiv.appendChild(itemContent);
       container.appendChild(itemDiv);
 
       // Updated drag and drop handlers
@@ -988,8 +1189,28 @@
       projectsContainer.innerHTML = "";
       appData.forEach((project) => createProject(project));
       
-      // Use setInstance instead of init
-      Coloris.setInstance();
+      // Configure global Coloris settings
+      Coloris({
+        theme: 'default',
+        themeMode: currentTheme,
+        formatToggle: false,
+        clearButton: true,
+        alpha: false,
+        wrap: true,
+        closeButton: true,
+        swatches: [
+          '#264653',
+          '#2a9d8f',
+          '#e9c46a',
+          '#f4a261',
+          '#e76f51',
+          '#ef476f',
+          '#ffd166',
+          '#06d6a0',
+          '#118ab2',
+          '#073b4c'
+        ]
+      });
     }
 
     addProjectBtn.addEventListener("click", () => {
@@ -1063,12 +1284,14 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Configure Coloris
       Coloris({
         theme: 'default',
-        themeMode: 'dark',
+        themeMode: currentTheme,
         formatToggle: false,
         clearButton: true,
+        alpha: false,
+        wrap: true,
+        closeButton: true,
         swatches: [
           '#264653',
           '#2a9d8f',
@@ -1086,6 +1309,73 @@
       // Initial render of projects
       renderProjects();
     });
+
+    // Add helper function to strip HTML
+    function stripHtml(html) {
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || "";
+    }
+
+    // Add editor functionality
+    function openEditor(item) {
+      const popup = document.querySelector('.editor-popup');
+      const overlay = document.querySelector('.editor-overlay');
+      const closeBtn = popup.querySelector('.close-btn');
+      
+      // Initialize Summernote
+      $('#summernote').summernote({
+        height: '100%',
+        toolbar: [
+          ['style', ['style']],
+          ['font', ['bold', 'underline', 'clear']],
+          ['color', ['color']],
+          ['para', ['ul', 'ol', 'paragraph']],
+          ['table', ['table']],
+          ['insert', ['link']],
+          ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        callbacks: {
+          onChange: function(contents) {
+            item.content = contents;
+            saveData();
+          }
+        }
+      });
+
+      // Set content
+      $('#summernote').summernote('code', item.content || item.name);
+
+      // Show popup and overlay
+      popup.style.display = 'flex';
+      overlay.style.display = 'block';
+
+      // Handle close
+      const closeEditor = () => {
+        $('#summernote').summernote('destroy');
+        popup.style.display = 'none';
+        overlay.style.display = 'none';
+        renderProjects(); // Refresh to show updated content
+      };
+
+      closeBtn.onclick = closeEditor;
+      overlay.onclick = closeEditor;
+    }
+
+    // Add this new helper function
+    function formatTextWithLinks(text) {
+      if (!text) return '';
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return text.replace(urlRegex, (url) => {
+        const safeUrl = url
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+        return `<a href="${safeUrl}" class="item-link" target="_blank">${safeUrl}</a>`;
+      });
+    }
   </script>
 </body>
 
