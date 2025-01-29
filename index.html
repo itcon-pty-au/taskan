@@ -7,14 +7,14 @@
   <title>Project Tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <!-- Update these Coloris links to the latest version -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css" />
   <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
-  
+
   <!-- Add Summernote dependencies -->
   <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
-  
+
   <style>
     /* Add these CSS variables at the start of the style section */
     :root {
@@ -123,7 +123,8 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      overflow: hidden;  /* Add this to prevent corner gaps */
+      overflow: hidden;
+      /* Add this to prevent corner gaps */
     }
 
     .list-header {
@@ -134,7 +135,8 @@
       padding: 10px;
       border-bottom: 1px solid var(--border-color);
       gap: 5px;
-      position: relative; /* For absolute positioning of rearrange buttons */
+      position: relative;
+      /* For absolute positioning of rearrange buttons */
     }
 
     .list-header .rearrange-buttons {
@@ -159,7 +161,8 @@
       transition: background-color 0.2s;
       cursor: move;
       /* Indicates draggable items */
-      position: relative;  /* For positioning the hover menu */
+      position: relative;
+      /* For positioning the hover menu */
     }
 
     .list-item:hover {
@@ -205,7 +208,7 @@
     }
 
     .add-item:hover {
-      background-color:var(--item-hover);
+      background-color: var(--item-hover);
     }
 
     .add-list {
@@ -219,7 +222,8 @@
     }
 
     .add-list:hover {
-      background-color: var(--item-hover);;
+      background-color: var(--item-hover);
+      ;
     }
 
     .dragging {
@@ -257,7 +261,7 @@
       border-radius: 50%;
     }
 
-   .list-items {
+    .list-items {
       min-height: 50px;
       /* Ensure empty lists have drop area */
       padding: 10px;
@@ -293,7 +297,8 @@
 
     /* Custom checkbox styling */
     .todo-checkbox {
-      accent-color: #28a745;  /* Green color for checked state */
+      accent-color: #28a745;
+      /* Green color for checked state */
       width: 16px;
       height: 16px;
       cursor: pointer;
@@ -335,7 +340,8 @@
       padding: 3px;
       border-radius: 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: none;  /* Change from flex to none */
+      display: none;
+      /* Change from flex to none */
       gap: 5px;
       z-index: 100;
       align-items: center;
@@ -343,7 +349,8 @@
 
     /* Add hover state to show menu */
     .list-item:hover .item-hover-menu {
-      display: flex;  /* Show menu on hover */
+      display: flex;
+      /* Show menu on hover */
     }
 
     /* Hide the color input completely */
@@ -388,11 +395,17 @@
       width: 28px !important;
       height: 28px !important;
       background-color: var(--item-bg) !important;
+      transition: background-color 0.2s ease !important;
+    }
+
+    .item-hover-menu button[data-coloris]:hover {
+      background-color: var(--item-hover) !important;
     }
 
     /* Remove the old add-list styles */
     .add-list {
-      display: none; /* Hide the old add list div */
+      display: none;
+      /* Hide the old add list div */
     }
 
     /* Add style for the new add list button */
@@ -425,17 +438,22 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;  /* Set fixed width */
-      height: 32px; /* Set fixed height */
+      width: 32px;
+      /* Set fixed width */
+      height: 32px;
+      /* Set fixed height */
       margin-left: 5px;
-      transition: width 0.2s ease; /* Add smooth transition for width changes */
+      transition: width 0.2s ease;
+      /* Add smooth transition for width changes */
     }
 
     /* Add style for delete confirmation state */
     .project-header button.delete-confirm,
     .list-header button.delete-confirm {
-      width: auto; /* Allow width to adjust to content */
-      padding: 5px 10px; /* Add some padding for the text */
+      width: auto;
+      /* Allow width to adjust to content */
+      padding: 5px 10px;
+      /* Add some padding for the text */
     }
 
     .project-header button:hover,
@@ -458,7 +476,8 @@
     /* Ensure icons are centered */
     .project-header button i,
     .list-header button i {
-      font-size: 14px; /* Standardize icon size */
+      font-size: 14px;
+      /* Standardize icon size */
     }
 
     .list.dragging {
@@ -490,11 +509,13 @@
       left: 10px;
       display: flex;
       gap: 5px;
-      z-index: 1; /* Ensure buttons appear above the title */
+      z-index: 1;
+      /* Ensure buttons appear above the title */
     }
 
     .list-header {
-      position: relative; /* For absolute positioning of rearrange buttons */
+      position: relative;
+      /* For absolute positioning of rearrange buttons */
     }
 
     .list-header .editable {
@@ -503,7 +524,8 @@
     }
 
     .list-header:hover .editable {
-      margin-left: 85px; /* Increased margin to accommodate two buttons + gap */
+      margin-left: 85px;
+      /* Increased margin to accommodate two buttons + gap */
     }
 
     .list-header:hover .rearrange-buttons {
@@ -529,17 +551,20 @@
       height: 80%;
       background: var(--card-bg);
       z-index: 1000;
-      padding: 0;  /* Remove padding */
+      padding: 0;
+      /* Remove padding */
       border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      flex-direction: column;  /* Stack children vertically */
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      flex-direction: column;
+      /* Stack children vertically */
     }
 
     .editor-popup .editor-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 20px;  /* Add padding to header instead */
+      padding: 10px 20px;
+      /* Add padding to header instead */
       border-bottom: 1px solid var(--border-color);
       background: var(--header-bg);
       border-radius: 8px 8px 0 0;
@@ -547,7 +572,8 @@
 
     /* Add styles for the editor container */
     .editor-popup #summernote {
-      flex: 1;  /* Fill remaining space */
+      flex: 1;
+      /* Fill remaining space */
       display: flex;
       flex-direction: column;
     }
@@ -564,7 +590,8 @@
     }
 
     .editor-popup .note-editable {
-      height: 100% !important;  /* Force full height */
+      height: 100% !important;
+      /* Force full height */
     }
 
     /* Update Summernote theme styles */
@@ -632,7 +659,7 @@
     }
 
     /* Style our custom icon */
-    .color-picker-btn .fa-paintbrush {
+    .color-picker-btn .fa-fill-drip {
       font-size: 14px !important;
       color: var(--text-color) !important;
       display: inline-block !important;
@@ -741,7 +768,7 @@
       const deleteButton = document.createElement("button");
       deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
       deleteButton.title = "Delete";  // Default title
-      
+
       let confirmTimeout;
       let isConfirming = false;
 
@@ -790,7 +817,7 @@
       addListBtn.classList.add("add-list-btn");
       addListBtn.innerHTML = '<i class="fas fa-plus"></i>';
       addListBtn.title = "Add New List";
-      
+
       const collapseBtn = document.createElement("button");
       collapseBtn.classList.add("collapse-btn");
       collapseBtn.innerHTML = project.collapsed
@@ -1003,7 +1030,7 @@
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("list-item");
       itemDiv.setAttribute("draggable", "true");
-      
+
       // Set background color if it exists
       if (item.backgroundColor) {
         itemDiv.style.backgroundColor = item.backgroundColor;
@@ -1013,24 +1040,15 @@
       const hoverMenu = document.createElement("div");
       hoverMenu.classList.add("item-hover-menu");
 
-      // Create hidden input for color picker
-      const colorInput = document.createElement('input');
-      colorInput.type = 'text';
-      colorInput.setAttribute('data-coloris', '');
-      colorInput.style.display = 'none';
-      
-      // Create color picker button
+      // Update the color picker button and input setup
       const colorPickerBtn = document.createElement("button");
+      colorPickerBtn.classList.add('color-picker-btn');
+      colorPickerBtn.setAttribute('data-coloris', '');
       colorPickerBtn.innerHTML = '<i class="fas fa-fill-drip"></i>';
       colorPickerBtn.title = "Change Color";
-      
-      // When button is clicked, trigger the color input
-      colorInput.addEventListener('click', () => {
-        colorInput.click();
-      });
-      
-      // Add event listener for when color changes
-      colorInput.addEventListener('coloris:pick', event => {
+
+      // Add event listener for color changes
+      colorPickerBtn.addEventListener('coloris:pick', event => {
         const color = event.detail.color;
         item.backgroundColor = color;
         itemDiv.style.backgroundColor = color;
@@ -1046,7 +1064,6 @@
       // Add buttons to hover menu in desired order
       hoverMenu.appendChild(editorBtn);
       hoverMenu.appendChild(colorPickerBtn);
-      hoverMenu.appendChild(colorInput);
 
       // Create and add delete button
       const deleteButton = createDeleteButton(() => {
@@ -1074,7 +1091,7 @@
         });
 
         itemDiv.appendChild(checkbox);
-        
+
         itemContent.classList.add("item-name");
         if (item.completed) {
           itemContent.classList.add("strikethrough");
@@ -1085,7 +1102,7 @@
       itemContent.innerHTML = formatTextWithLinks(item.content ? stripHtml(item.content).substring(0, 100) + "..." : item.name);
       itemContent.addEventListener("click", () => openEditor(item));
       itemContent.style.cursor = "pointer";
-      
+
       itemDiv.appendChild(itemContent);
       container.appendChild(itemDiv);
 
@@ -1188,7 +1205,7 @@
     function renderProjects() {
       projectsContainer.innerHTML = "";
       appData.forEach((project) => createProject(project));
-      
+
       // Configure global Coloris settings
       Coloris({
         theme: 'default',
@@ -1269,8 +1286,8 @@
       document.documentElement.setAttribute("data-theme", theme);
       localStorage.setItem("theme", theme);
       currentTheme = theme;
-      themeToggleBtn.innerHTML = theme === "dark" 
-        ? '<i class="fas fa-sun"></i>' 
+      themeToggleBtn.innerHTML = theme === "dark"
+        ? '<i class="fas fa-sun"></i>'
         : '<i class="fas fa-moon"></i>';
     }
 
@@ -1322,7 +1339,7 @@
       const popup = document.querySelector('.editor-popup');
       const overlay = document.querySelector('.editor-overlay');
       const closeBtn = popup.querySelector('.close-btn');
-      
+
       // Initialize Summernote
       $('#summernote').summernote({
         height: '100%',
@@ -1336,7 +1353,7 @@
           ['view', ['fullscreen', 'codeview', 'help']]
         ],
         callbacks: {
-          onChange: function(contents) {
+          onChange: function (contents) {
             item.content = contents;
             saveData();
           }
