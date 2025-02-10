@@ -3936,6 +3936,43 @@
         // Insert at the correct position
         projectsContainer.insertBefore(newProjectElement, nextSibling);
       }
+
+      // Add this function before the DOMContentLoaded event listener
+      function addHistoryStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+          .truncated-text {
+            display: inline;
+          }
+
+          .full-text {
+            display: none;
+          }
+
+          .history-table td {
+            word-break: break-word;
+            line-height: 1.4;
+          }
+
+          .history-table .read-more-btn {
+            background: none;
+            border: none;
+            color: #0066cc;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.9em;
+            margin-left: 5px;
+          }
+
+          .history-table .read-more-btn:hover {
+            text-decoration: underline;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // The existing DOMContentLoaded event listener can stay as is
+      document.addEventListener("DOMContentLoaded", addHistoryStyles);
     </script>
   </body>
 </html>
