@@ -1491,31 +1491,28 @@
       }
 
       .list:last-child .list-header .rearrange-buttons {
-        width: 20px; /* Smaller width for last list since it only has < */
+        width: 20px;
       }
 
-      /* Adjust margin for first and last list headers */
-      .list:first-child .list-header-content {
-        margin-left: 30px; /* Smaller margin since we only need space for one button */
+          .list:first-child .list-header-content {
+        margin-left: 30px;
       }
 
       .list:last-child .list-header-content {
-        margin-left: 30px; /* Smaller margin since we only need space for one button */
+        margin-left: 30px;
       }
 
-      /* Update rearrange buttons spacing */
       .rearrange-buttons i {
         padding: 4px;
         transition: opacity 0.2s ease;
-        width: 16px; /* Fixed width for the icon */
-        text-align: center; /* Center the icon */
+        width: 16px;
+        text-align: center;
       }
 
-      // Add these CSS rules for the backup nudge animation
       .backup-nudge {
         animation: nudge 1s ease-in-out infinite;
         position: relative;
-        background-color: #ffd700 !important; /* Golden color for attention */
+        background-color: #ffd700 !important;
         color: black !important;
       }
 
@@ -1532,7 +1529,6 @@
         }
       }
 
-      /* Add these CSS rules for the history table styling */
       .read-more-btn {
         margin-left: 8px;
         padding: 2px 6px;
@@ -1710,7 +1706,7 @@
 
     <script>
       const AUTO_BACKUP_KEY = "kanbanAutoBackupHandle";
-      const BACKUP_INTERVAL = 1000 * 60 * 60; // 1 hour in milliseconds
+      const BACKUP_INTERVAL = 1000 * 60 * 60;
       const LAST_BACKUP_KEY = "kanbanLastBackupTime";
 
       const projectsContainer = document.getElementById("projectsContainer");
@@ -1772,7 +1768,7 @@
           const range = document.createRange();
           const sel = window.getSelection();
           range.selectNodeContents(element);
-          range.collapse(false); // false means collapse to end
+          range.collapse(false);
           sel.removeAllRanges();
           sel.addRange(range);
         }
@@ -1813,7 +1809,7 @@
       function createDeleteButton(deleteAction) {
         const deleteButton = document.createElement("button");
         deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-        deleteButton.title = "Delete"; // Default title
+        deleteButton.title = "Delete";
 
         let confirmTimeout;
         let isConfirming = false;
@@ -1863,7 +1859,7 @@
         addListBtn.classList.add("add-list-btn");
         addListBtn.innerHTML = '<i class="fas fa-plus"></i>';
         addListBtn.addEventListener("click", () => {
-          const newList = { id: Date.now(), name: "", items: [] }; // Empty name initially
+          const newList = { id: Date.now(), name: "", items: [] };
           project.lists.push(newList);
           saveData();
           renderProjects();
@@ -1965,7 +1961,6 @@
         const rearrangeButtons = document.createElement("div");
         rearrangeButtons.classList.add("rearrange-buttons");
 
-        // Create a wrapper for the list name and buttons
         const headerContent = document.createElement("div");
         headerContent.classList.add("list-header-content");
 
@@ -1983,7 +1978,6 @@
           }
         );
 
-        // Create buttons first before using them
         const addTodoButton = document.createElement("button");
         addTodoButton.innerHTML = '<i class="fa-regular fa-square-check"></i>';
         addTodoButton.title = "New Todo";
@@ -2027,15 +2021,13 @@
           renderProjects();
         });
 
-        // Add delete list button
         const deleteListButton = createDeleteButton(() => {
           project.lists = project.lists.filter((l) => l.id !== list.id);
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
         deleteListButton.title = "Delete List";
 
-        // Add rearrange buttons
         if (index > 0) {
           const movePrevBtn = document.createElement("i");
           movePrevBtn.className = "fas fa-chevron-left";
@@ -2070,12 +2062,10 @@
           rearrangeButtons.appendChild(moveNextBtn);
         }
 
-        // Update the order of appending elements
         header.appendChild(rearrangeButtons);
         headerContent.appendChild(listNameEl);
         header.appendChild(headerContent);
 
-        // Add all the action buttons to headerContent
         const buttonContainer = document.createElement("div");
         buttonContainer.style.display = "flex";
         buttonContainer.style.gap = "5px";
@@ -2084,10 +2074,8 @@
         buttonContainer.appendChild(addNoteButton);
         buttonContainer.appendChild(addSubListButton);
         buttonContainer.appendChild(deleteListButton);
-
         headerContent.appendChild(buttonContainer);
 
-        // Create listItemsContainer before using it
         const listItemsContainer = document.createElement("div");
         listItemsContainer.classList.add("list-items");
 
@@ -2240,7 +2228,7 @@
               (newName) => {
                 if (newName) {
                   subList.name = newName;
-                  subList.isNew = false; // Clear the new flag after successful naming
+                  subList.isNew = false;
                   saveData();
                 } else if (subList.isNew || !subList.name) {
                   list.subLists = list.subLists.filter(
@@ -2267,7 +2255,7 @@
                 (sl) => sl.id !== subList.id
               );
               saveData();
-              renderProjects();
+              renderSingleProject(project);
             });
 
             subListHeader.appendChild(subListTitle);
@@ -2282,8 +2270,8 @@
             }
 
             subList.items.forEach((item) => {
-              if (!item) return; // Skip if item is null
-              item.parentListId = list.id; // Set parent list reference for items
+              if (!item) return;
+              item.parentListId = list.id;
               createListItem(subList, item, subListItems);
             });
 
@@ -2328,7 +2316,7 @@
                   } else {
                     subList.items.push(draggedSubList);
                   }
-                  draggedSubList.parentListId = list.id; // Update parent list reference
+                  draggedSubList.parentListId = list.id;
                 } else {
                   const { itemId, listId, isSubListItem, parentListId } = data;
 
@@ -2396,7 +2384,7 @@
                   subListId: subList.id,
                   parentListId: list.id,
                   type: "sublist",
-                  sourceListId: list.id, // Add source list ID
+                  sourceListId: list.id,
                 })
               );
               subListDiv.classList.add("dragging");
@@ -2503,7 +2491,7 @@
         const deleteButton = createDeleteButton(() => {
           list.items = list.items.filter((i) => i.id !== item.id);
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
 
         hoverMenu.appendChild(editorBtn);
@@ -2618,7 +2606,7 @@
 
         itemDiv.addEventListener("drop", (e) => {
           e.preventDefault();
-          e.stopPropagation(); // Prevent event from bubbling to container
+          e.stopPropagation();
 
           try {
             const { itemId, listId, isSubListItem, parentListId } = JSON.parse(
@@ -2862,7 +2850,7 @@
           if (item.isNew && content.trim() !== "") {
             const newItem = {
               id: item.id,
-              name: stripHtml(content).substring(0, 50), // Use first 50 chars as name
+              name: stripHtml(content).substring(0, 50),
               type: item.type,
               content: content,
               completed: item.type === "todo" ? false : undefined,
@@ -2937,7 +2925,7 @@
         taskHistory.push({
           task: item.content || item.name,
           timeTaken: item.elapsedTime || 0,
-          startedAt: item.startTime || new Date().toISOString(), // Use existing start time or current time
+          startedAt: item.startTime || new Date().toISOString(),
           completedAt: new Date().toISOString(),
         });
         localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
@@ -3004,7 +2992,6 @@
             })
             .join("");
 
-          // Add event listeners for Read More buttons
           tbody.querySelectorAll(".read-more-btn").forEach((btn) => {
             btn.addEventListener("click", function () {
               const truncatedText =
@@ -3023,17 +3010,12 @@
             });
           });
 
-          // Add event listeners for Delete buttons
           tbody.querySelectorAll(".delete-history-btn").forEach((btn) => {
             btn.addEventListener("click", function () {
               const row = this.closest("tr");
               const index = parseInt(row.dataset.index);
-
-              // Remove the entry from taskHistory
-              taskHistory.splice(index, 1);
+               taskHistory.splice(index, 1);
               localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
-
-              // Re-render the table
               renderHistory(
                 tbody,
                 document.querySelector(".history-search").value
@@ -3052,7 +3034,7 @@
           taskHistory = [];
           localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
           const tbody = document.querySelector(".history-modal tbody");
-          renderHistory(tbody); // Re-render with the current tbody
+          renderHistory(tbody);
         }
       }
 
@@ -3548,13 +3530,11 @@
             autoBackupBtn.innerHTML = "Export";
           }
 
-          // Schedule next nudge in one hour
           setTimeout(nudgeBackup, 60 * 60 * 1000);
 
           return true;
         } catch (err) {
           console.error("Error during backup:", err);
-          // If backup failed, show the nudge
           nudgeBackup();
           if (existingConfig)
             localStorage.setItem(AUTO_BACKUP_KEY, existingConfig);
@@ -3674,7 +3654,6 @@
         renderProjects();
         updateTopMenu();
 
-        // Check if there are any projects and if a backup is needed
         if (appData.length > 0) {
           const lastBackupDate = lastBackupTime
             ? new Date(
@@ -3686,14 +3665,12 @@
             : null;
           const now = new Date();
 
-          // Show nudge immediately if no backup has been done or last backup was over an hour ago
           if (
             !lastBackupDate ||
             now.getTime() - lastBackupDate.getTime() > 60 * 60 * 1000
           ) {
             nudgeBackup();
           } else {
-            // Schedule next nudge when the hour is up
             const timeUntilNextNudge =
               60 * 60 * 1000 - (now.getTime() - lastBackupDate.getTime());
             setTimeout(nudgeBackup, timeUntilNextNudge);
@@ -3769,7 +3746,7 @@
 
           const lastBackupDate = new Date(
             parseInt(year),
-            parseInt(month) - 1, // Months are 0-based
+            parseInt(month) - 1,
             parseInt(day),
             parseInt(hours),
             parseInt(minutes),
@@ -3824,7 +3801,7 @@
 
           return new Date(
             parseInt(year),
-            parseInt(month) - 1, // Months are 0-based
+            parseInt(month) - 1,
             parseInt(day),
             parseInt(hours),
             parseInt(minutes),
@@ -3832,20 +3809,18 @@
           );
         } catch (err) {
           console.error("Error parsing date string:", err);
-          return new Date(NaN); // Return invalid date
+          return new Date(NaN);
         }
       }
 
-      // Add this function after the parseDateString function
       function cleanupCompletedTodos() {
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Set to start of today
+        today.setHours(0, 0, 0, 0);
 
         let cleanupPerformed = false;
 
         appData.forEach((project) => {
           project.lists.forEach((list) => {
-            // Clean main list items
             if (list.items) {
               const originalLength = list.items.length;
               list.items = list.items.filter((item) => {
@@ -3853,7 +3828,6 @@
                 if (item.type !== "todo") return true;
                 if (!item.completed) return true;
 
-                // Check completion date if it exists
                 if (item.completedAt) {
                   const completionDate = new Date(item.completedAt);
                   return completionDate >= today;
@@ -3863,7 +3837,6 @@
               if (list.items.length < originalLength) cleanupPerformed = true;
             }
 
-            // Clean sub-list items
             if (list.subLists) {
               list.subLists.forEach((subList) => {
                 if (subList.items) {
@@ -3873,7 +3846,6 @@
                     if (item.type !== "todo") return true;
                     if (!item.completed) return true;
 
-                    // Check completion date if it exists
                     if (item.completedAt) {
                       const completionDate = new Date(item.completedAt);
                       return completionDate >= today;
@@ -3894,7 +3866,6 @@
         }
       }
 
-      // Add this function to handle the backup nudging
       function nudgeBackup() {
         const autoBackupBtn = document.getElementById("autoBackupBtn");
         if (
@@ -3905,13 +3876,11 @@
           autoBackupBtn.title = "⚠️ Please backup your data!";
           autoBackupBtn.innerHTML = "⚠️ Backup Needed";
 
-          // Remove the nudge after user clicks
           autoBackupBtn.addEventListener(
             "click",
             () => {
               autoBackupBtn.classList.remove("backup-nudge");
               autoBackupBtn.innerHTML = "Export";
-              // Schedule next nudge in one hour
               setTimeout(nudgeBackup, 60 * 60 * 1000);
             },
             { once: true }
@@ -3919,8 +3888,17 @@
         }
       }
 
-      // Call this function when the document loads
       document.addEventListener("DOMContentLoaded", addHistoryStyles);
+
+      function renderSingleProject(project) {
+        const existingProject = Array.from(projectsContainer.children).find(
+          el => el.querySelector('.project-header .editable').textContent === project.name
+        );
+        if (existingProject) {
+          existingProject.remove();
+        }
+        createProject(project);
+      }
     </script>
   </body>
 </html>
