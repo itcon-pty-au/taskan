@@ -2192,7 +2192,7 @@
             }
 
             saveData();
-            renderProjects();
+            renderSingleProject(project);
           } catch (err) {
             console.error("Error during drag and drop:", err);
           }
@@ -2201,7 +2201,7 @@
         if (!list.items) list.items = [];
 
         list.items.forEach((item) =>
-          createListItem(list, item, listItemsContainer)
+          createListItem(list, item, listItemsContainer, project)
         );
 
         if (!list.subLists) {
@@ -2272,7 +2272,7 @@
             subList.items.forEach((item) => {
               if (!item) return;
               item.parentListId = list.id;
-              createListItem(subList, item, subListItems);
+              createListItem(subList, item, subListItems, project);
             });
 
             subListItems.addEventListener("dragover", (e) => {
@@ -2369,7 +2369,7 @@
                 }
 
                 saveData();
-                renderProjects();
+                renderSingleProject(project);
               } catch (err) {
                 console.error("Error during drag and drop:", err);
               }
@@ -2406,7 +2406,7 @@
         container.appendChild(listDiv);
       }
 
-      function createListItem(list, item, container) {
+      function createListItem(list, item, container, project) {
         const itemDiv = document.createElement("div");
         itemDiv.classList.add("list-item");
         itemDiv.setAttribute("draggable", "true");
@@ -2658,7 +2658,7 @@
             }
 
             saveData();
-            renderProjects();
+            renderSingleProject(project);
           } catch (err) {
             console.error("Error during drag and drop:", err);
           }
