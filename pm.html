@@ -1837,7 +1837,7 @@
         return deleteButton;
       }
 
-      function createProject(project) {
+      function createProject(project, container = null) {
         const projectDiv = document.createElement("div");
         projectDiv.classList.add("project");
 
@@ -1862,7 +1862,7 @@
           const newList = { id: Date.now(), name: "", items: [] };
           project.lists.push(newList);
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
 
         const collapseBtn = document.createElement("button");
@@ -1873,7 +1873,7 @@
         collapseBtn.addEventListener("click", () => {
           project.collapsed = !project.collapsed;
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
 
         const moveUpBtn = document.createElement("button");
@@ -1888,7 +1888,7 @@
               appData[index],
             ];
             saveData();
-            renderProjects();
+            renderSingleProject(project);
           }
         });
 
@@ -1904,14 +1904,14 @@
               appData[index],
             ];
             saveData();
-            renderProjects();
+            renderSingleProject(project);
           }
         });
 
         const deleteProjectButton = createDeleteButton(() => {
           appData = appData.filter((p) => p.id !== project.id);
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
         deleteProjectButton.title = "Delete Project";
 
@@ -1944,7 +1944,7 @@
           projectDiv.insertBefore(timelineContainer, listsContainer);
         }
 
-        projectsContainer.appendChild(projectDiv);
+        (container || projectsContainer).appendChild(projectDiv);
       }
 
       function createList(project, list, container, index, totalLists) {
@@ -1973,7 +1973,7 @@
             if (!newName) {
               project.lists = project.lists.filter((l) => l.id !== list.id);
               saveData();
-              renderProjects();
+              renderSingleProject(project);
             }
           }
         );
@@ -2018,7 +2018,7 @@
           if (!list.subLists) list.subLists = [];
           list.subLists.push(newSubList);
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
 
         const deleteListButton = createDeleteButton(() => {
@@ -2033,14 +2033,22 @@
           movePrevBtn.className = "fas fa-chevron-left";
           movePrevBtn.style.cursor = "pointer";
           movePrevBtn.title = "Move List Left";
-          movePrevBtn.addEventListener("click", () => {
-            const prevList = project.lists[index - 1];
-            [project.lists[index - 1], project.lists[index]] = [
-              project.lists[index],
-              project.lists[index - 1],
-            ];
-            saveData();
-            renderProjects();
+          movePrevBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            // Get the current project from appData using project ID
+            const projectIndex = appData.findIndex(p => p.id === project.id);
+            if (projectIndex !== -1) {
+              // Operate on appData directly
+              [appData[projectIndex].lists[index - 1], appData[projectIndex].lists[index]] = [
+                appData[projectIndex].lists[index],
+                appData[projectIndex].lists[index - 1],
+              ];
+              saveData();
+              renderSingleProject(appData[projectIndex]);
+            }
           });
           rearrangeButtons.appendChild(movePrevBtn);
         }
@@ -2050,14 +2058,22 @@
           moveNextBtn.className = "fas fa-chevron-right";
           moveNextBtn.style.cursor = "pointer";
           moveNextBtn.title = "Move List Right";
-          moveNextBtn.addEventListener("click", () => {
-            const nextList = project.lists[index + 1];
-            [project.lists[index + 1], project.lists[index]] = [
-              project.lists[index],
-              project.lists[index + 1],
-            ];
-            saveData();
-            renderProjects();
+          moveNextBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            // Get the current project from appData using project ID
+            const projectIndex = appData.findIndex(p => p.id === project.id);
+            if (projectIndex !== -1) {
+              // Operate on appData directly
+              [appData[projectIndex].lists[index + 1], appData[projectIndex].lists[index]] = [
+                appData[projectIndex].lists[index],
+                appData[projectIndex].lists[index + 1],
+              ];
+              saveData();
+              renderSingleProject(appData[projectIndex]);
+            }
           });
           rearrangeButtons.appendChild(moveNextBtn);
         }
@@ -2235,7 +2251,7 @@
                     (sl) => sl.id !== subList.id
                   );
                   saveData();
-                  renderProjects();
+                  renderSingleProject(project);
                 } else {
                   subListTitle.innerHTML = formatTextWithLinks(subList.name);
                 }
@@ -2436,7 +2452,7 @@
             item.completed = false;
           }
           saveData();
-          renderProjects();
+          renderSingleProject(project);
         });
 
         const colorInput = document.createElement("input");
@@ -2859,13 +2875,18 @@
             if (item.list) {
               item.list.items.push(newItem);
               saveData();
+              const project = appData.find(p => 
+                p.lists.some(l => l.id === item.list.id)
+              );
+              if (project) {
+                renderSingleProject(project);
+              }
             }
           }
 
           $("#summernote").summernote("destroy");
           popup.style.display = "none";
           overlay.style.display = "none";
-          renderProjects();
         };
 
         closeBtn.onclick = closeEditor;
@@ -3197,7 +3218,7 @@
             clearTimeout(confirmTimeout);
             delete project.milestones;
             saveData();
-            renderProjects();
+            renderSingleProject(project);
           } else {
             isConfirming = true;
             deleteBtn.innerHTML = "Sure?";
@@ -3891,13 +3912,29 @@
       document.addEventListener("DOMContentLoaded", addHistoryStyles);
 
       function renderSingleProject(project) {
+        // Find the project index in appData
+        const projectIndex = appData.findIndex(p => p.id === project.id);
+        if (projectIndex === -1) return;
+
+        // Find the existing project element
         const existingProject = Array.from(projectsContainer.children).find(
           el => el.querySelector('.project-header .editable').textContent === project.name
         );
+        
+        // Get the reference node for insertion
+        const nextSibling = projectsContainer.children[projectIndex + 1] || null;
+        
+        // Remove the existing project if it exists
         if (existingProject) {
           existingProject.remove();
         }
-        createProject(project);
+        
+        // Create the new project element
+        const newProjectElement = document.createElement('div');
+        createProject(project, newProjectElement);
+        
+        // Insert at the correct position
+        projectsContainer.insertBefore(newProjectElement, nextSibling);
       }
     </script>
   </body>
