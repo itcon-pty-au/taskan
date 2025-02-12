@@ -204,8 +204,9 @@
       align-items: center;
       transition: background-color 0.2s;
       cursor: move;
-
       position: relative;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .list-item:hover {
@@ -547,15 +548,42 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80%;
+      width: 90%;
       max-width: 800px;
-      height: 90vh; /* Increased from 80% to 90vh for better visibility */
+      height: 90vh;
       background: var(--card-bg);
-      z-index: 1000;
-      padding: 0;
       border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1001;
       flex-direction: column;
+    }
+
+    .editor-popup #summernote {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .editor-popup .note-editor {
+      display: flex !important;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .editor-popup .note-editing-area {
+      flex: 1;
+      display: flex !important;
+      flex-direction: column;
+      min-height: 0 !important;
+    }
+
+    .editor-popup .note-editable {
+      flex: 1 !important;
+      min-height: 0 !important;
+      height: 100% !important;
     }
 
     .editor-popup .editor-header {
@@ -592,26 +620,6 @@
 
     .editor-popup .editor-header .close-btn i {
       font-size: 14px;
-    }
-
-    .editor-popup #summernote {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .editor-popup .note-editor {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .editor-popup .note-editing-area {
-      flex: 1;
-    }
-
-    .editor-popup .note-editable {
-      height: 100% !important;
     }
 
     .note-editor .note-editable {
@@ -665,8 +673,10 @@
     }
 
     .note-editor.note-frame {
-      border-color: var(--border-color) !important;
-      height: calc(100% - 50px) !important; /* Full height minus header */
+      display: flex !important;
+      flex-direction: column;
+      height: 100% !important;
+      min-height: 0 !important;
     }
 
     .note-editor .note-status-output,
@@ -674,7 +684,7 @@
       background-color: var(--header-bg) !important;
       border-color: var(--border-color) !important;
       color: var(--text-color) !important;
-      display: none !important; /* Hide the resize handle */
+      display: none !important;
     }
 
     .note-editor .note-dropdown-menu {
@@ -1682,10 +1692,15 @@
 
     .task-content {
       display: inline-block;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
     
     .truncated-text {
       display: inline;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .full-text {
@@ -1727,6 +1742,42 @@
     .note-editable {
       height: 100% !important;
       min-height: unset !important;
+    }
+
+    /* Remove the pink outline from Summernote editor */
+    .note-editing-area:focus-within {
+      outline: none !important;
+    }
+
+    .note-editable:focus {
+      outline: none !important;
+    }
+
+    .note-editor .note-editing-area .note-editable {
+      outline: none !important;
+      border: none !important;
+    }
+
+    /* Remove all outlines and borders from Summernote components */
+    .note-editor *:focus,
+    .note-editor *:focus-within,
+    .note-editor .note-editable,
+    .note-editor .note-editing-area,
+    .note-frame *,
+    .note-frame *:focus,
+    .note-frame *:focus-within {
+      outline: none !important;
+      border-color: transparent !important;
+    }
+
+    .note-placeholder,
+    .note-editable {
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .note-editor .note-dropzone {
+      display: none !important;
     }
   </style>
 </head>
@@ -1779,9 +1830,7 @@
       </button>
       <span class="due-date-info"></span>
     </div>
-    <div style="padding: 15px 0;">
-      <div id="summernote"></div>
-    </div>
+    <div id="summernote"></div>
   </div>
 
   <div class="history-overlay"></div>
@@ -2992,6 +3041,12 @@
       const dueDateInfo = popup.querySelector(".due-date-info");
       const headerTitle = popup.querySelector(".editor-header h3");
 
+      // Clean up any existing content and destroy previous instance
+      $('#summernote').empty();
+      if ($('#summernote').data('summernote')) {
+        $('#summernote').summernote('destroy');
+      }
+
       dueDateContainer.style.display = item.type === "todo" ? "flex" : "none";
       headerTitle.textContent = item.type === "todo" ? "Edit Todo" : "Edit Note";
 
@@ -3003,6 +3058,45 @@
         dueDateInfo.textContent = "";
       }
 
+      $('#summernote').summernote({
+        height: "100%",
+        minHeight: null,
+        maxHeight: null,
+        placeholder: "Start typing...",
+        focus: true,
+        callbacks: {
+          onInit: function() {
+            // Clear the editor content first
+            $('#summernote').summernote('code', '');
+            // Then set the content if it exists
+            if (!item.isNew && (item.content || item.name)) {
+              $('#summernote').summernote('code', item.content || item.name);
+            }
+            setTimeout(() => {
+              $('#summernote').summernote('focus');
+              $('.note-editor').css('display', 'flex');
+              $('.note-editing-area').css('display', 'flex');
+              $('#summernote').css('display', 'flex');
+            }, 100);
+          },
+          onChange: function(contents) {
+            if (!item.isNew) {
+              item.content = contents;
+              saveData();
+            }
+          }
+        },
+        spellCheck: true,
+        disableGrammar: false,
+        styleTags: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        prettifyHtml: false,
+        emptyPara: ''
+      });
+
+      popup.style.display = "flex";
+      overlay.style.display = "block";
+
+      // Add date change event listener
       dueDateInput.addEventListener("change", function () {
         if (this.value) {
           const date = new Date(this.value);
@@ -3025,6 +3119,7 @@
         saveData();
       });
 
+      // Add clear date event listener
       clearDueDate.addEventListener("click", function () {
         dueDateInput.value = "";
         delete item.dueDate;
@@ -3043,54 +3138,8 @@
         }
       });
 
-      $("#summernote").summernote({
-        height: "100%",
-        placeholder: "Start typing...",
-        toolbar: [
-          ["style", ["style"]],
-          ["font", ["bold", "underline", "clear"]],
-          ["color", ["color"]],
-          ["para", ["ul", "ol", "paragraph"]],
-          ["table", ["table"]],
-          ["insert", ["link"]],
-          ["view", ["fullscreen", "codeview", "help"]],
-        ],
-        callbacks: {
-          onChange: function (contents) {
-            if (!item.isNew) {
-              item.content = contents;
-              saveData();
-            }
-          },
-        },
-      });
-
-      $("#summernote").summernote(
-        "code",
-        item.isNew ? "" : item.content || item.name
-      );
-
-      popup.style.display = "flex";
-      overlay.style.display = "block";
-
-      if (item.isNew) {
-        setTimeout(() => {
-          $("#summernote").summernote("focus");
-
-          const range = document.createRange();
-          const sel = window.getSelection();
-          const editable = popup.querySelector(".note-editable");
-          if (editable) {
-            range.setStart(editable, 0);
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
-          }
-        }, 100);
-      }
-
       const closeEditor = () => {
-        const content = $("#summernote").summernote("code");
+        const content = $('#summernote').summernote('code');
 
         if (item.isNew && content.trim() !== "") {
           const newItem = {
@@ -3113,7 +3162,9 @@
           }
         }
 
-        $("#summernote").summernote("destroy");
+        // Clean up
+        $('#summernote').empty();
+        $('#summernote').summernote('destroy');
         popup.style.display = "none";
         overlay.style.display = "none";
       };
