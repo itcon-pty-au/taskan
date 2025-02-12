@@ -549,7 +549,7 @@
       transform: translate(-50%, -50%);
       width: 80%;
       max-width: 800px;
-      height: 80%;
+      height: 90vh; /* Increased from 80% to 90vh for better visibility */
       background: var(--card-bg);
       z-index: 1000;
       padding: 0;
@@ -666,6 +666,7 @@
 
     .note-editor.note-frame {
       border-color: var(--border-color) !important;
+      height: calc(100% - 50px) !important; /* Full height minus header */
     }
 
     .note-editor .note-status-output,
@@ -673,6 +674,7 @@
       background-color: var(--header-bg) !important;
       border-color: var(--border-color) !important;
       color: var(--text-color) !important;
+      display: none !important; /* Hide the resize handle */
     }
 
     .note-editor .note-dropdown-menu {
@@ -1677,6 +1679,55 @@
       font-weight: bold;
       text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
     }
+
+    .task-content {
+      display: inline-block;
+    }
+    
+    .truncated-text {
+      display: inline;
+    }
+
+    .full-text {
+      display: none;
+    }
+
+    .history-table td {
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .history-table .read-more-btn {
+      background: none;
+      border: none;
+      color: #0066cc;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.9em;
+      margin-left: 5px;
+    }
+
+    .history-table .read-more-btn:hover {
+      text-decoration: underline;
+    }
+
+    /* Add these new styles */
+    .note-editor .note-statusbar {
+      display: none !important; /* Hide the resize handle */
+    }
+
+    .note-editor.note-frame {
+      height: calc(100% - 50px) !important; /* Full height minus header */
+    }
+
+    .note-editing-area {
+      height: calc(100% - 40px) !important; /* Full height minus toolbar */
+    }
+
+    .note-editable {
+      height: 100% !important;
+      min-height: unset !important;
+    }
   </style>
 </head>
 
@@ -1971,7 +2022,7 @@
             appData[index],
           ];
           saveData();
-          renderSingleProject(project);
+          renderProjects();
         }
       });
 
@@ -1987,7 +2038,7 @@
             appData[index],
           ];
           saveData();
-          renderSingleProject(project);
+          renderProjects();
         }
       });
 
@@ -3167,56 +3218,54 @@
 
     function renderHistory(tbody, filter = "") {
       const filteredHistory = taskHistory.filter((entry) =>
-        entry.task.toLowerCase().includes(filter.toLowerCase())
+        stripHtml(entry.task).toLowerCase().includes(filter.toLowerCase())
       );
 
       if (filteredHistory.length === 0) {
-        const message = filter
-          ? "No tasks found matching your search. Try something else?"
-          : "No completed tasks yet. Time to get productive! 🚀";
-
         tbody.innerHTML = `
-            <tr>
-              <td colspan="5" style="text-align: center; padding: 40px; font-size: 1.1em; color: #666;">
-                ${message}
-              </td>
-            </tr>
-          `;
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; font-size: 1.1em; color: #666;">
+              ${filter ? "No tasks found matching your search. Try something else?" : "No completed tasks yet. Time to get productive! 🚀"}
+            </td>
+          </tr>
+        `;
       } else {
         tbody.innerHTML = filteredHistory
           .map((entry, index) => {
-            const truncatedTask =
-              entry.task.length > 100
-                ? `<span class="truncated-text">${entry.task.substring(
-                  0,
-                  100
-                )}...</span>
-                     <span class="full-text" style="display: none;">${entry.task
-                }</span>
-                     <button class="read-more-btn">Read More</button>`
-                : entry.task;
+            const plainText = stripHtml(entry.task);
+            
+            let taskDisplay;
+            if (plainText.length > 100) {
+              taskDisplay = `
+                <span class="truncated-text" data-index="${index}">${plainText.substring(0, 100)}...</span>
+                <span class="full-text" data-index="${index}" style="display: none;">${plainText}</span>
+                <button class="read-more-btn" data-index="${index}">Read More</button>
+              `;
+            } else {
+              taskDisplay = plainText;
+            }
 
             return `
-                  <tr data-index="${index}">
-                    <td>${truncatedTask}</td>
-                    <td>${formatDate(entry.startedAt)}</td>
-                    <td>${formatDate(entry.completedAt)}</td>
-                    <td>${formatTime(entry.timeTaken)}</td>
-                    <td class="action-column">
-                      <button class="delete-history-btn" title="Delete Entry">
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </td>
-                  </tr>
-                `;
+              <tr data-index="${index}">
+                <td>${taskDisplay}</td>
+                <td>${formatDate(entry.startedAt)}</td>
+                <td>${formatDate(entry.completedAt)}</td>
+                <td>${formatTime(entry.timeTaken)}</td>
+                <td class="action-column">
+                  <button class="delete-history-btn" title="Delete Entry">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
           })
           .join("");
 
         tbody.querySelectorAll(".read-more-btn").forEach((btn) => {
-          btn.addEventListener("click", function () {
-            const truncatedText =
-              this.previousElementSibling.previousElementSibling;
-            const fullText = this.previousElementSibling;
+          btn.addEventListener("click", function() {
+            const index = this.getAttribute('data-index');
+            const truncatedText = tbody.querySelector(`.truncated-text[data-index="${index}"]`);
+            const fullText = tbody.querySelector(`.full-text[data-index="${index}"]`);
 
             if (truncatedText.style.display !== "none") {
               truncatedText.style.display = "none";
@@ -3231,15 +3280,12 @@
         });
 
         tbody.querySelectorAll(".delete-history-btn").forEach((btn) => {
-          btn.addEventListener("click", function () {
+          btn.addEventListener("click", function() {
             const row = this.closest("tr");
             const index = parseInt(row.dataset.index);
             taskHistory.splice(index, 1);
             localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
-            renderHistory(
-              tbody,
-              document.querySelector(".history-search").value
-            );
+            renderHistory(tbody, document.querySelector(".history-search").value);
           });
         });
       }
@@ -4035,12 +4081,13 @@
 
     function cleanupCompletedTodos() {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0); // Set to start of today
 
       let cleanupPerformed = false;
 
       appData.forEach((project) => {
         project.lists.forEach((list) => {
+          // Clean up main list items
           if (list.items) {
             const originalLength = list.items.length;
             list.items = list.items.filter((item) => {
@@ -4048,15 +4095,17 @@
               if (item.type !== "todo") return true;
               if (!item.completed) return true;
 
+              // If it's completed, check completion date
               if (item.completedAt) {
                 const completionDate = new Date(item.completedAt);
-                return completionDate >= today;
+                return completionDate >= today; // Keep only if completed today or later
               }
-              return true;
+              return true; // Keep items without completedAt for backward compatibility
             });
             if (list.items.length < originalLength) cleanupPerformed = true;
           }
 
+          // Clean up sub-list items
           if (list.subLists) {
             list.subLists.forEach((subList) => {
               if (subList.items) {
@@ -4066,20 +4115,21 @@
                   if (item.type !== "todo") return true;
                   if (!item.completed) return true;
 
+                  // If it's completed, check completion date
                   if (item.completedAt) {
                     const completionDate = new Date(item.completedAt);
-                    return completionDate >= today;
+                    return completionDate >= today; // Keep only if completed today or later
                   }
-                  return true;
+                  return true; // Keep items without completedAt for backward compatibility
                 });
-                if (subList.items.length < originalLength)
-                  cleanupPerformed = true;
+                if (subList.items.length < originalLength) cleanupPerformed = true;
               }
             });
           }
         });
       });
 
+      // If any items were cleaned up, save and re-render
       if (cleanupPerformed) {
         saveData();
         renderProjects();
@@ -4117,53 +4167,76 @@
       const existingProject = Array.from(projectsContainer.children).find(
         el => el.querySelector('.project-header .editable').textContent === project.name
       );
-
-      const nextSibling = projectsContainer.children[projectIndex + 1] || null;
+      const currentIndex = Array.from(projectsContainer.children).indexOf(existingProject);
 
       if (existingProject) {
+        if (currentIndex !== projectIndex) {
+          // For move operations, preserve the timeline
+          const timelineContainer = existingProject.querySelector('.timeline-container');
+          const nextSibling = projectsContainer.children[projectIndex] || null;
+          projectsContainer.insertBefore(existingProject, nextSibling);
+          return;
+        }
+        
+        // For non-move operations, preserve the timeline if it exists
+        const timelineContainer = existingProject.querySelector('.timeline-container');
         existingProject.remove();
+        
+        // Create new project element
+        const newProjectElement = document.createElement('div');
+        createProject(project, newProjectElement);
+        
+        // If there was a timeline, replace the new timeline with the preserved one
+        if (timelineContainer) {
+          const newTimeline = newProjectElement.querySelector('.timeline-container');
+          if (newTimeline) {
+            newTimeline.replaceWith(timelineContainer);
+          }
+        }
+        
+        const nextSibling = projectsContainer.children[projectIndex] || null;
+        projectsContainer.insertBefore(newProjectElement, nextSibling);
+        return;
       }
 
+      // If project doesn't exist yet, create it normally
       const newProjectElement = document.createElement('div');
       createProject(project, newProjectElement);
-
+      const nextSibling = projectsContainer.children[projectIndex] || null;
       projectsContainer.insertBefore(newProjectElement, nextSibling);
     }
 
     function addHistoryStyles() {
       const style = document.createElement('style');
       style.textContent = `
-          .truncated-text {
-            display: inline;
-          }
+        .truncated-text,
+        .full-text {
+          display: inline;
+        }
 
-          .full-text {
-            display: none;
-          }
+        .history-table td {
+          word-break: break-word;
+          line-height: 1.4;
+          vertical-align: top;
+          padding: 12px 8px;
+        }
 
-          .history-table td {
-            word-break: break-word;
-            line-height: 1.4;
-          }
+        .history-table .read-more-btn {
+          background: none;
+          border: none;
+          color: #0066cc;
+          cursor: pointer;
+          padding: 2px 5px;
+          font-size: 0.9em;
+          margin-left: 5px;
+        }
 
-          .history-table .read-more-btn {
-            background: none;
-            border: none;
-            color: #0066cc;
-            cursor: pointer;
-            padding: 0;
-            font-size: 0.9em;
-            margin-left: 5px;
-          }
-
-          .history-table .read-more-btn:hover {
-            text-decoration: underline;
-          }
-        `;
+        .history-table .read-more-btn:hover {
+          text-decoration: underline;
+        }
+      `;
       document.head.appendChild(style);
     }
-
-    document.addEventListener("DOMContentLoaded", addHistoryStyles);
   </script>
 </body>
 
