@@ -204,8 +204,8 @@
       align-items: center;
       transition: background-color 0.2s;
       cursor: move;
-
       position: relative;
+      border: 2px solid transparent;
     }
 
     .list-item:hover {
@@ -529,10 +529,6 @@
 
     .list-header {
       position: relative;
-    }
-
-    .list-header:hover .rearrange-buttons {
-      opacity: 1;
     }
 
     button:disabled {
@@ -1186,9 +1182,7 @@
       border-color: var(--border-color);
       opacity: 0.7;
       border-width: 3px;
-      /* Make month grid lines thicker */
       height: 100% !important;
-      /* Make month grid lines span full height */
     }
 
     .vis-item-content {
@@ -1214,15 +1208,6 @@
     .vis-time-axis .vis-grid.vis-minor {
       border-color: var(--border-color);
       opacity: 0.4;
-    }
-
-    .vis-time-axis .vis-grid.vis-major {
-      border-color: var(--border-color);
-      opacity: 0.7;
-      border-width: 3px;
-      /* Make month grid lines thicker */
-      height: 100% !important;
-      /* Make month grid lines span full height */
     }
 
     .vis-item {
@@ -1263,10 +1248,6 @@
 
     [data-theme="dark"] {
       --date-scheme: dark;
-    }
-
-    [data-theme="light"] {
-      --date-scheme: light;
     }
 
     .milestones-container h3 {
@@ -1337,19 +1318,6 @@
 
     .note-editor .note-color-palette {
       padding: 5px !important;
-    }
-
-    .note-editor .note-color-reset {
-      padding: 5px 8px !important;
-      margin: 5px !important;
-      width: calc(100% - 10px) !important;
-      background-color: var(--item-bg) !important;
-      color: var(--text-color) !important;
-      border: 1px solid var(--border-color) !important;
-    }
-
-    .note-editor .note-color-reset:hover {
-      background-color: var(--item-hover) !important;
     }
 
     @keyframes pulseButton {
@@ -1448,34 +1416,20 @@
       }
     }
 
-    .rearrange-buttons i {
-      padding: 4px;
-      transition: opacity 0.2s ease;
-    }
-
-    .rearrange-buttons i:hover {
-      opacity: 1;
-    }
-
-    /* Add styles for the header content wrapper */
     .list-header-content {
       display: flex;
       align-items: center;
       flex: 1;
       margin-left: 50px;
-      /* Add margin to prevent overlap with rearrange buttons */
     }
 
     .list-header .editable {
       flex: 1;
       min-width: 0;
-      /* Allow text to shrink if needed */
     }
 
-    /* Add specific styles for first and last list */
     .list:first-child .list-header .rearrange-buttons {
       width: 20px;
-      /* Smaller width for first list since it only has > */
     }
 
     .list:last-child .list-header .rearrange-buttons {
@@ -1583,15 +1537,6 @@
       transition: opacity 0.2s ease;
     }
 
-    .delete-history-btn:hover {
-      opacity: 1;
-      color: #ff4444;
-    }
-
-    .history-table tr:hover .delete-history-btn {
-      opacity: 0.8;
-    }
-
     .due-date-container {
       display: flex;
       align-items: center;
@@ -1628,9 +1573,8 @@
       color: var(--text-color);
     }
 
-    /* Add these new styles */
     .editor-popup .note-editor.note-frame {
-      height: calc(100% - 60px); /* Adjust for header height */
+      height: calc(100% - 60px);
       display: flex;
       flex-direction: column;
     }
@@ -1647,23 +1591,48 @@
     }
 
     .editor-popup .note-editor .note-statusbar {
-      cursor: default; /* Remove resize cursor since we're handling the size */
+      cursor: default;
     }
 
     .editor-popup .note-editor .note-resizebar {
-      display: none; /* Hide the resize handle since we're using flex */
+      display: none;
     }
 
-    /* Ensure the editor container takes full height */
     .editor-popup #summernote {
-      height: calc(100% - 60px) !important; /* Adjust for header height */
+      height: calc(100% - 60px) !important;
     }
 
-    /* Fix for the toolbar positioning */
     .editor-popup .note-toolbar {
       position: sticky;
       top: 0;
       z-index: 10;
+    }
+
+    .list-item.overdue {
+      border-color: #ff4444;
+      background-color: rgba(255, 68, 68, 0.1);
+    }
+
+    .list-item.due-soon {
+      border-color: #ffd700;
+      background-color: rgba(255, 215, 0, 0.1);
+    }
+
+    .due-date-info {
+      margin-left: 8px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .overdue .due-date-info {
+      background-color: rgba(255, 68, 68, 0.2);
+      color: #ff4444;
+    }
+
+    .due-soon .due-date-info {
+      background-color: rgba(255, 215, 0, 0.2);
+      color: #997a00;
     }
   </style>
 </head>
