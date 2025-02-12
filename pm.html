@@ -202,7 +202,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: background-color 0.2s;
+      transition: all 0.2s;
       cursor: move;
       position: relative;
       border: 2px solid transparent;
@@ -1608,14 +1608,36 @@
       z-index: 10;
     }
 
-    .list-item.overdue {
-      border-color: #ff4444;
-      background-color: rgba(255, 68, 68, 0.1);
+    .list-item {
+      background-color: var(--item-bg);
+      padding: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+      cursor: move;
+      position: relative;
+      border: 2px solid transparent;
     }
 
-    .list-item.due-soon {
-      border-color: #ffd700;
-      background-color: rgba(255, 215, 0, 0.1);
+    .list-items .list-item[class*="overdue"],
+    .sub-list-items .list-item[class*="overdue"] {
+      border: 2px solid #ff4444 !important;
+      background-color: rgba(255, 68, 68, 0.1) !important;
+    }
+
+    .list-items .list-item[class*="due-soon"],
+    .sub-list-items .list-item[class*="due-soon"] {
+      border: 2px solid #ffd700 !important;
+      background-color: rgba(255, 215, 0, 0.1) !important;
+    }
+
+    .list-items .list-item[class*="overdue"]:hover,
+    .list-items .list-item[class*="due-soon"]:hover,
+    .sub-list-items .list-item[class*="overdue"]:hover,
+    .sub-list-items .list-item[class*="due-soon"]:hover {
+      background-color: var(--item-hover) !important;
     }
 
     .due-date-info {
@@ -1623,14 +1645,15 @@
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 0.85em;
+      display: inline-block;
     }
 
-    .overdue .due-date-info {
+    .list-item[class*="overdue"] .due-date-info {
       background-color: rgba(255, 68, 68, 0.2);
       color: #ff4444;
     }
 
-    .due-soon .due-date-info {
+    .list-item[class*="due-soon"] .due-date-info {
       background-color: rgba(255, 215, 0, 0.2);
       color: #997a00;
     }
@@ -2527,18 +2550,33 @@
       if (item.type === "todo" && item.dueDate) {
         const now = new Date();
         const dueDate = new Date(item.dueDate);
+        dueDate.setHours(23, 59, 59, 999); // Set to end of day
         const diffTime = dueDate - now;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+        // Remove any existing status classes
+        itemDiv.classList.remove("overdue", "due-soon");
+
         if (diffTime < 0) {
           itemDiv.classList.add("overdue");
-        } else if (diffDays <= 2) { // Show warning 2 days before due date
+          console.log("Added overdue class", itemDiv.classList.contains("overdue"));
+          console.log("Computed border:", window.getComputedStyle(itemDiv).border);
+          console.log("Computed background:", window.getComputedStyle(itemDiv).backgroundColor);
+        } else if (diffDays <= 2) {
           itemDiv.classList.add("due-soon");
+          console.log("Added due-soon class", itemDiv.classList.contains("due-soon")); // Debug
         }
 
         const dueInfo = document.createElement("span");
         dueInfo.classList.add("due-date-info");
         dueInfo.textContent = formatDueDate(item.dueDate);
+        
+        // Clear any existing due date info
+        const existingDueInfo = itemContent.querySelector(".due-date-info");
+        if (existingDueInfo) {
+          existingDueInfo.remove();
+        }
+        
         itemContent.appendChild(dueInfo);
       }
 
@@ -2745,6 +2783,11 @@
           console.error("Error during drag and drop:", err);
         }
       });
+
+      // Add this after creating the item
+      console.log("Final classes:", itemDiv.className);
+      console.log("Due date:", item.dueDate);
+      console.log("Item div styles:", window.getComputedStyle(itemDiv));
     }
 
     function formatDueDate(dueDate) {
