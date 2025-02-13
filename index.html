@@ -463,7 +463,7 @@
 
     .project-header button,
     .list-header button {
-      padding: 5px 10px;
+      padding: 5px;
       background-color: #555555;
       color: white;
       border: none;
@@ -472,16 +472,22 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 28px;  /* Reduced from 32px */
+      height: 28px;  /* Reduced from 32px */
       margin-left: 5px;
       transition: width 0.2s ease;
+    }
+
+    .project-header button i,
+    .list-header button i {
+      font-size: 12px;  /* Reduced from 14px */
     }
 
     .project-header button.delete-confirm,
     .list-header button.delete-confirm {
       width: auto;
-      padding: 5px 10px;
+      padding: 5px 8px;  /* Reduced horizontal padding */
+      font-size: 12px;  /* Added to match icon size */
     }
 
     .project-header button:hover,
@@ -492,11 +498,6 @@
     [data-theme="dark"] .project-header button:hover,
     [data-theme="dark"] .list-header button:hover {
       background-color: #666;
-    }
-
-    .project-header button i,
-    .list-header button i {
-      font-size: 14px;
     }
 
     .list.dragging {
@@ -795,7 +796,7 @@
     }
 
     .sub-list-header button {
-      padding: 5px 10px;
+      padding: 5px;
       background-color: #555555;
       color: white;
       border: none;
@@ -804,10 +805,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
+      width: 28px;  /* Reduced from 32px */
+      height: 28px;  /* Reduced from 32px */
       margin-left: 5px;
       transition: width 0.2s ease;
+    }
+
+    .sub-list-header button i {
+      font-size: 12px;  /* Reduced from 14px */
     }
 
     .sub-list-header button:hover {
@@ -820,7 +825,8 @@
 
     .sub-list-header button.delete-confirm {
       width: auto;
-      padding: 5px 10px;
+      padding: 5px 8px;  /* Reduced horizontal padding */
+      font-size: 12px;  /* Added to match icon size */
     }
 
     .sub-list-items {
@@ -1984,9 +1990,9 @@
         <button id="addProjectBtn" title="Create New Project">
           New Project
         </button>
-        <button id="importDataBtn" title="Import Data">Import</button>
-        <button id="autoBackupBtn" title="Setup Auto-backup">Export</button>
-        <button id="historyBtn" title="View Task History">History</button>
+        <button id="importDataBtn" title="Import Data"><i class="fa-solid fa-file-import"></i></button>
+        <button id="autoBackupBtn" title="Setup Auto-backup"><i class="fa-solid fa-file-export"></i></button>
+        <button id="historyBtn" title="View Task History"><i class="fa fa-history"></i></button>
         <button id="themeToggleBtn" title="Toggle Theme">
           <i class="fas fa-sun"></i>
         </button>
@@ -4069,9 +4075,9 @@
 
         const autoBackupBtn = document.getElementById("autoBackupBtn");
         if (autoBackupBtn) {
-          autoBackupBtn.classList.remove("backup-nudge");
-          autoBackupBtn.title = "Change Auto-backup Folder";
-          autoBackupBtn.innerHTML = "Export";
+          autoBackupBtn.classList.add("backup-nudge");
+          autoBackupBtn.title = "⚠️ Backup needed - Click to perform backup";
+          autoBackupBtn.innerHTML = '⚠️ <i class="fa-solid fa-file-export"></i>';
         }
 
         setTimeout(nudgeBackup, 60 * 60 * 1000);
@@ -4425,7 +4431,7 @@
           "click",
           () => {
             autoBackupBtn.classList.remove("backup-nudge");
-            autoBackupBtn.innerHTML = "Export";
+            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
             setTimeout(nudgeBackup, 60 * 60 * 1000);
           },
           { once: true }
