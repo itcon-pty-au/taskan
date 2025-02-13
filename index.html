@@ -74,7 +74,7 @@
       padding: 15px;
       display: flex;
       flex-direction: column;
-      min-height: 100vh; /* Make container take full viewport height */
+      min-height: 97vh;
     }
 
     .top-menu {
@@ -102,7 +102,7 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-      flex: 1; /* Allow projects container to grow and take available space */
+      flex: 1; 
     }
 
     .project {
@@ -1456,8 +1456,8 @@
 
     .footer {
       text-align: center;
-      padding: 20px 0;
-      margin-top: auto; /* Push footer to bottom */
+      padding: 10px 0;
+      margin-top: auto;
       color: var(--text-color);
       opacity: 0.7;
       font-size: 0.9em;
@@ -3367,13 +3367,14 @@
 
       const closeEditor = () => {
         const content = $('#summernote').summernote('code');
+        const strippedContent = stripHtml(content).trim();
 
-        if (item.isNew && content.trim() !== "") {
+        if (item.isNew && strippedContent !== "") {
           const newItem = {
             id: item.id,
-            name: stripHtml(content).substring(0, 50),
+            name: strippedContent.substring(0, 50),
             type: item.type,
-            content: content, 
+            content: content,
             completed: item.type === "todo" ? false : undefined,
           };
 
