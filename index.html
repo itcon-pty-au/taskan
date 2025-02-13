@@ -1974,6 +1974,23 @@
         max-width: none !important;
       }
     }
+
+    .github-link {
+      color: var(--text-color);
+      opacity: 0.7;
+      margin-left: 5px;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .github-link:hover {
+      opacity: 1;
+    }
+
+    .github-link i {
+      font-size: 1.2em;
+      vertical-align: middle;
+    }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
   <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
@@ -2009,7 +2026,9 @@
       <script>
         document.write(new Date().getFullYear());
       </script>
-      ITCON • Made with <span class="heart">♥</span> in Melbourne
+      ITCON • Made with <span class="heart">♥</span> in Melbourne. Submit feature requests, issues at <a href="https://github.com/itcon-pty-au/taskan" target="_blank" class="github-link" title="View on GitHub">
+        <i class="fab fa-github"></i>
+      </a>
     </div>
   </div>
 
