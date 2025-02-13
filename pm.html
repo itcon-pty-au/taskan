@@ -74,6 +74,7 @@
       padding: 15px;
       display: flex;
       flex-direction: column;
+      min-height: 100vh; /* Make container take full viewport height */
     }
 
     .top-menu {
@@ -96,11 +97,12 @@
     .projects-container {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 20px;
       background-color: var(--card-bg);
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+      flex: 1; /* Allow projects container to grow and take available space */
     }
 
     .project {
@@ -110,7 +112,6 @@
       background-color: var(--card-bg);
       display: flex;
       flex-direction: column;
-      gap: 15px;
     }
 
     .project-header {
@@ -132,6 +133,7 @@
     .lists-container {
       display: flex;
       gap: 15px;
+      padding-top: 10px;
     }
 
     .highlight {
@@ -1018,7 +1020,6 @@
 
     .timeline-container {
       margin: 15px 0;
-      padding: 10px;
       background-color: var(--card-bg);
       border-radius: 8px;
       border: 1px solid var(--border-color);
@@ -1456,7 +1457,7 @@
     .footer {
       text-align: center;
       padding: 20px 0;
-      margin-top: 20px;
+      margin-top: auto; /* Push footer to bottom */
       color: var(--text-color);
       opacity: 0.7;
       font-size: 0.9em;
@@ -2210,96 +2211,102 @@
       return deleteButton;
     }
 
-    function createProject(project, container = null) {
-      const projectDiv = document.createElement("div");
-      projectDiv.classList.add("project");
+    function createProject(project, projectElement = document.createElement("div")) {
+      projectElement.className = "project";
+      projectElement.id = `project-${project.id}`;
 
       const header = document.createElement("div");
-      header.classList.add("project-header");
-      header.style.justifyContent = "flex-end";
+      header.className = "project-header";
 
-      const projectNameEl = createEditableElement(
-        "div",
-        project.name,
-        (newName) => {
-          project.name = newName;
-          saveData();
-        }
-      );
-      projectNameEl.style.flexGrow = "1";
+      const projectName = createEditableElement("div", project.name, (newName) => {
+        project.name = newName;
+        saveData();
+      });
 
-      const addListBtn = document.createElement("button");
-      addListBtn.classList.add("add-list-btn");
-      addListBtn.innerHTML = '<i class="fas fa-plus"></i>';
-      addListBtn.addEventListener("click", () => {
+      const buttonContainer = document.createElement("div");
+      buttonContainer.style.display = "flex";
+      buttonContainer.style.gap = "5px";
+      const editButton = document.createElement("button");
+      editButton.innerHTML = '<i class="fas fa-pen"></i>';
+      editButton.title = "Edit Project";
+      editButton.onclick = () => {
+        const item = {
+          id: Date.now(),
+          type: "project",
+          content: project.name,
+          isNew: false
+        };
+        showProjectForm(project);
+      };
+
+      const addListButton = document.createElement("button");
+      addListButton.className = "add-list-btn";
+      addListButton.innerHTML = '<i class="fas fa-plus"></i>';
+      addListButton.title = "Add List";
+      addListButton.onclick = () => {
         const newList = { id: Date.now(), name: "", items: [] };
         project.lists.push(newList);
         saveData();
         renderSingleProject(project);
-      });
+      };
 
       const collapseBtn = document.createElement("button");
-      collapseBtn.classList.add("collapse-btn");
-      collapseBtn.innerHTML = project.collapsed
-        ? '<i class="fas fa-chevron-down"></i>'
-        : '<i class="fas fa-chevron-up"></i>';
-      collapseBtn.addEventListener("click", () => {
+      collapseBtn.innerHTML = project.collapsed ? 
+        '<i class="fas fa-chevron-down"></i>' : 
+        '<i class="fas fa-chevron-up"></i>';
+      collapseBtn.title = project.collapsed ? "Expand" : "Collapse";
+      collapseBtn.onclick = () => {
         project.collapsed = !project.collapsed;
         saveData();
         renderSingleProject(project);
-      });
+      };
 
       const moveUpBtn = document.createElement("button");
       moveUpBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
       moveUpBtn.title = "Move Project Up";
       moveUpBtn.disabled = appData.indexOf(project) === 0;
-      moveUpBtn.addEventListener("click", () => {
+      moveUpBtn.onclick = () => {
         const index = appData.indexOf(project);
         if (index > 0) {
-          [appData[index], appData[index - 1]] = [
-            appData[index - 1],
-            appData[index],
-          ];
+          [appData[index], appData[index - 1]] = [appData[index - 1], appData[index]];
           saveData();
           renderProjects();
         }
-      });
+      };
 
       const moveDownBtn = document.createElement("button");
       moveDownBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
       moveDownBtn.title = "Move Project Down";
       moveDownBtn.disabled = appData.indexOf(project) === appData.length - 1;
-      moveDownBtn.addEventListener("click", () => {
+      moveDownBtn.onclick = () => {
         const index = appData.indexOf(project);
         if (index < appData.length - 1) {
-          [appData[index], appData[index + 1]] = [
-            appData[index + 1],
-            appData[index],
-          ];
+          [appData[index], appData[index + 1]] = [appData[index + 1], appData[index]];
+          saveData();
+          renderProjects();
+        }
+      };
+
+      const deleteButton = createDeleteButton(() => {
+        const index = appData.indexOf(project);
+        if (index > -1) {
+          appData.splice(index, 1);
           saveData();
           renderProjects();
         }
       });
 
-      const deleteProjectButton = createDeleteButton(() => {
-        appData = appData.filter((p) => p.id !== project.id);
-        saveData();
-        renderSingleProject(project);
-      });
-      deleteProjectButton.title = "Delete Project";
+      // Append buttons in the specified order
+      buttonContainer.appendChild(editButton);
+      buttonContainer.appendChild(addListButton);
+      buttonContainer.appendChild(collapseBtn);
+      buttonContainer.appendChild(moveUpBtn);
+      buttonContainer.appendChild(moveDownBtn);
+      buttonContainer.appendChild(deleteButton);
 
-      header.appendChild(projectNameEl);
-
-      [
-        addListBtn,
-        collapseBtn,
-        moveUpBtn,
-        moveDownBtn,
-        deleteProjectButton,
-      ].forEach((btn) => {
-        btn.style.marginLeft = "5px";
-        header.appendChild(btn);
-      });
+      header.appendChild(projectName);
+      header.appendChild(buttonContainer);
+      projectElement.appendChild(header);
 
       const listsContainer = document.createElement("div");
       listsContainer.classList.add("lists-container");
@@ -2309,15 +2316,19 @@
         createList(project, list, listsContainer, index, project.lists.length)
       );
 
-      projectDiv.appendChild(header);
-      projectDiv.appendChild(listsContainer);
+      projectElement.appendChild(listsContainer);
 
       if (project.milestones && project.milestones.length > 0) {
         const timelineContainer = createTimeline(project);
-        projectDiv.insertBefore(timelineContainer, listsContainer);
+        projectElement.insertBefore(timelineContainer, listsContainer);
       }
 
-      (container || projectsContainer).appendChild(projectDiv);
+      // Add this line back to append to projectsContainer if no container is provided
+      if (!projectElement.parentNode) {
+        projectsContainer.appendChild(projectElement);
+      }
+
+      return projectElement;
     }
 
     function createList(project, list, container, index, totalLists) {
@@ -3107,7 +3118,9 @@
 
     function renderProjects() {
       projectsContainer.innerHTML = "";
-      appData.forEach((project) => createProject(project));
+      appData.forEach(project => {
+        createProject(project);
+      });
 
       Coloris({
         theme: "default",
@@ -3142,7 +3155,7 @@
     importDataBtn.addEventListener("click", () => {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = "application/json";
+      input.accept = ".json";
 
       input.addEventListener("change", (event) => {
         const file = event.target.files[0];
@@ -3155,14 +3168,35 @@
                 appData = importedData;
                 saveData();
                 renderProjects();
-                alert("Data successfully imported!");
+                
+                // Visual confirmation
+                const originalText = importDataBtn.textContent;
+                const originalBg = importDataBtn.style.backgroundColor;
+                importDataBtn.textContent = "✓ Imported";
+                importDataBtn.style.backgroundColor = "#28a745";
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                  importDataBtn.textContent = originalText;
+                  importDataBtn.style.backgroundColor = originalBg;
+                }, 2000);
               } else {
-                alert(
-                  "Invalid file format. Please upload a valid JSON file."
-                );
+                // Error indication
+                importDataBtn.textContent = "⚠ Invalid Format";
+                importDataBtn.style.backgroundColor = "#dc3545";
+                setTimeout(() => {
+                  importDataBtn.textContent = "Import";
+                  importDataBtn.style.backgroundColor = "";
+                }, 2000);
               }
             } catch (error) {
-              alert("Failed to read file. Ensure it is a valid JSON file.");
+              // Error indication
+              importDataBtn.textContent = "⚠ Invalid File";
+              importDataBtn.style.backgroundColor = "#dc3545";
+              setTimeout(() => {
+                importDataBtn.textContent = "Import";
+                importDataBtn.style.backgroundColor = "";
+              }, 2000);
             }
           };
           reader.readAsText(file);
@@ -4537,7 +4571,7 @@
             {
               element: '.list:first-child button[title="Add Sub-list',
               title: 'Sub Lists',
-              intro: 'You can add a sub list inside a lists to further group tasks.',
+              intro: 'You can add a sub list inside a list to further group tasks.',
               position: 'right'
             },
             {
@@ -4588,6 +4622,7 @@
           hidePrev: false,
           exitOnOverlayClick: false,
           exitOnEsc: false,
+          skipLabel: '×',
           tooltipClass: 'custom-tooltip',
           onbeforechange: function(targetElement) {
             setTimeout(() => {
@@ -4713,21 +4748,22 @@
           localStorage.setItem('tutorialShown', 'true');
         });
 
-        intro.onexit(() => {
-          if (!localStorage.getItem('tutorialShown')) {
-            if (appData.length === 1 && appData[0].name === "My First Project") {
-              appData = [];
-              saveData();
-              renderProjects();
-            }
-          }
-        });
+        // Add a flag to track skip button clicks
+        let skipButtonClicked = false;
 
-        intro.onbeforeexit(() => {
-          if (!localStorage.getItem('tutorialShown')) {
-            return confirm('Are you sure you want to exit the tutorial? Your progress will not be saved.');
+        // Add click handler for skip button
+        document.addEventListener('click', function(e) {
+          if (e.target.classList.contains('introjs-skipbutton')) {
+            skipButtonClicked = true;
           }
-          return true;
+        }, true);
+
+        // Update the onexit handler
+        intro.onexit(function() {
+          if (skipButtonClicked) {
+            localStorage.setItem('tutorialShown', 'true');
+          }
+          skipButtonClicked = false; // Reset the flag
         });
       }, 1000);
     }
