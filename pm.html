@@ -542,6 +542,18 @@
       cursor: not-allowed;
     }
 
+    .editor-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+    }
+
     .editor-popup {
       display: none;
       position: fixed;
@@ -552,10 +564,38 @@
       max-width: 800px;
       height: 90vh;
       background: var(--card-bg);
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 0 0 1px var(--border-color),
+                  0 4px 20px rgba(0, 0, 0, 0.15),
+                  0 12px 40px rgba(0, 0, 0, 0.2);
       z-index: 1001;
       flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-popup .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--header-bg);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .editor-popup .due-date-container {
+      border-bottom: 1px solid var(--border-color);
+      background: var(--header-bg);
+    }
+
+    [data-theme="dark"] .editor-popup {
+      box-shadow: 0 0 0 1px var(--border-color),
+                  0 4px 20px rgba(0, 0, 0, 0.3),
+                  0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="dark"] .editor-overlay {
+      background: rgba(0, 0, 0, 0.7);
     }
 
     .editor-popup #summernote {
@@ -584,16 +624,6 @@
       flex: 1 !important;
       min-height: 0 !important;
       height: 100% !important;
-    }
-
-    .editor-popup .editor-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      border-bottom: 1px solid var(--border-color);
-      background: var(--header-bg);
-      border-radius: 8px 8px 0 0;
     }
 
     .editor-popup .editor-header .close-btn {
@@ -1779,6 +1809,68 @@
     .note-editor .note-dropzone {
       display: none !important;
     }
+
+    @keyframes steam {
+      0% {
+        transform: translateY(0) translateX(-50%) scale(1);
+        opacity: 0;
+      }
+      50% {
+        transform: translateY(-10px) translateX(-40%) scale(1.2);
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(-20px) translateX(-30%) scale(1.4);
+        opacity: 0;
+      }
+    }
+
+    @keyframes wiggle {
+      0%, 100% {
+        transform: rotate(0deg);
+      }
+      25% {
+        transform: rotate(-8deg);
+      }
+      75% {
+        transform: rotate(8deg);
+      }
+    }
+
+    #coffeeBtn {
+      position: relative;
+    }
+
+    #coffeeBtn button {
+      transition: transform 0.3s ease;
+    }
+
+    #coffeeBtn button:hover {
+      animation: wiggle 0.5s ease-in-out;
+    }
+
+    #coffeeBtn button::before {
+      content: "~";
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      opacity: 0;
+      color: var(--text-color);
+    }
+
+    #coffeeBtn button:hover::before {
+      animation: steam 1s ease-in-out infinite;
+    }
+
+    #coffeeBtn button i {
+      transition: transform 0.3s ease;
+    }
+
+    #coffeeBtn:hover button i {
+      transform: rotate(-15deg);
+    }
   </style>
 </head>
 
@@ -2753,10 +2845,10 @@
       }
 
       itemContent.innerHTML = formatTextWithLinks(
-        item.content
-          ? stripHtml(item.content).substring(0, 100) + "..."
-          : item.name
+        stripHtml(item.content || item.name || "").substring(0, 100) + 
+        (item.content && item.content.length > 100 ? "..." : "")
       );
+      
       itemContent.addEventListener("click", () => openEditor(item));
       itemContent.style.cursor = "pointer";
 
@@ -3066,14 +3158,23 @@
         focus: true,
         callbacks: {
           onInit: function() {
-            // Clear the editor content first
-            $('#summernote').summernote('code', '');
-            // Then set the content if it exists
-            if (!item.isNew && (item.content || item.name)) {
-              $('#summernote').summernote('code', item.content || item.name);
+            // Set the full formatted content
+            if (!item.isNew) {
+              $('#summernote').summernote('code', item.content || item.name || '');
             }
+            
             setTimeout(() => {
               $('#summernote').summernote('focus');
+              $('.note-editable').focus();
+              // Place cursor at end of content
+              const range = document.createRange();
+              const sel = window.getSelection();
+              const editableDiv = $('.note-editable')[0];
+              range.selectNodeContents(editableDiv);
+              range.collapse(false);
+              sel.removeAllRanges();
+              sel.addRange(range);
+              // Ensure proper display
               $('.note-editor').css('display', 'flex');
               $('.note-editing-area').css('display', 'flex');
               $('#summernote').css('display', 'flex');
@@ -3081,6 +3182,7 @@
           },
           onChange: function(contents) {
             if (!item.isNew) {
+              // Store the full formatted content
               item.content = contents;
               saveData();
             }
@@ -3144,9 +3246,9 @@
         if (item.isNew && content.trim() !== "") {
           const newItem = {
             id: item.id,
-            name: stripHtml(content).substring(0, 50),
+            name: stripHtml(content).substring(0, 50), // Truncated for display
             type: item.type,
-            content: content,
+            content: content, // Full content preserved
             completed: item.type === "todo" ? false : undefined,
           };
 
