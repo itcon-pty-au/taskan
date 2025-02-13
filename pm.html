@@ -1756,17 +1756,16 @@
       text-decoration: underline;
     }
 
-    /* Add these new styles */
     .note-editor .note-statusbar {
-      display: none !important; /* Hide the resize handle */
+      display: none !important;
     }
 
     .note-editor.note-frame {
-      height: calc(100% - 50px) !important; /* Full height minus header */
+      height: calc(100% - 50px) !important;
     }
 
     .note-editing-area {
-      height: calc(100% - 40px) !important; /* Full height minus toolbar */
+      height: calc(100% - 40px) !important;
     }
 
     .note-editable {
@@ -1774,7 +1773,6 @@
       min-height: unset !important;
     }
 
-    /* Remove the pink outline from Summernote editor */
     .note-editing-area:focus-within {
       outline: none !important;
     }
@@ -1788,7 +1786,6 @@
       border: none !important;
     }
 
-    /* Remove all outlines and borders from Summernote components */
     .note-editor *:focus,
     .note-editor *:focus-within,
     .note-editor .note-editable,
@@ -1871,7 +1868,108 @@
     #coffeeBtn:hover button i {
       transform: rotate(-15deg);
     }
+
+    .hide-back-button .introjs-prevbutton {
+      display: none !important;
+    }
+
+    .hide-back-button .introjs-tooltipbuttons {
+      text-align: right;
+    }
+
+    .welcome-step.introjs-tooltip {
+      max-width: 500px !important;
+      width: 90% !important;
+    }
+
+    .welcome-step .introjs-tooltiptext {
+      padding: 20px !important;
+      line-height: 1.6 !important;
+      font-size: 1.1em !important;
+    }
+
+    .welcome-step .introjs-tooltip-title {
+      font-size: 1.4em !important;
+      padding: 20px 20px 0 20px !important;
+    }
+
+    .welcome-step .introjs-tooltipbuttons {
+      padding: 20px !important;
+    }
+
+    .introjs-tooltip.welcome-step {
+      max-width: 600px !important;
+      width: 90% !important;
+      min-width: 500px !important;
+    }
+
+    .welcome-step.introjs-tooltip .introjs-tooltiptext {
+      padding: 24px !important;
+      line-height: 1.6 !important;
+      font-size: 1.1em !important;
+      text-align: left !important;
+    }
+
+    .welcome-step.introjs-tooltip .introjs-tooltip-title {
+      font-size: 1.5em !important;
+      padding: 24px 24px 0 24px !important;
+      margin-bottom: 12px !important;
+    }
+
+    .welcome-step.introjs-tooltip .introjs-tooltipbuttons {
+      padding: 20px !important;
+      border-top: 1px solid var(--border-color) !important;
+    }
+
+    .welcome-step.introjs-tooltip {
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+    }
+
+    @media (max-width: 600px) {
+      .welcome-step.introjs-tooltip {
+        min-width: unset !important;
+        width: calc(100% - 40px) !important;
+        margin: 0 20px !important;
+      }
+    }
+
+    .introjs-tooltip.welcome-step {
+      max-width: 600px !important;
+      width: 90% !important;
+      min-width: 500px !important;
+      position: fixed !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      margin: 0 !important;
+    }
+
+    .welcome-step .introjs-arrow {
+      display: none !important;
+    }
+
+    .welcome-step.introjs-tooltip:after,
+    .welcome-step.introjs-tooltip:before {
+      display: none !important;
+    }
+
+    .welcome-step .introjs-tooltiptext {
+      text-align: center !important;
+    }
+
+    @media (max-width: 600px) {
+      .introjs-tooltip.welcome-step {
+        min-width: unset !important;
+        width: calc(100% - 40px) !important;
+        max-width: none !important;
+      }
+    }
   </style>
+  <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+  <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
 </head>
 
 <body>
@@ -2020,7 +2118,7 @@
       }
     }
 
-    let currentTheme = localStorage.getItem("theme") || "light";
+    let currentTheme = localStorage.getItem("theme") || "dark";
     let taskHistory = JSON.parse(localStorage.getItem("taskHistory")) || [];
     let activeTimers = new Map();
 
@@ -3133,7 +3231,6 @@
       const dueDateInfo = popup.querySelector(".due-date-info");
       const headerTitle = popup.querySelector(".editor-header h3");
 
-      // Clean up any existing content and destroy previous instance
       $('#summernote').empty();
       if ($('#summernote').data('summernote')) {
         $('#summernote').summernote('destroy');
@@ -3158,7 +3255,6 @@
         focus: true,
         callbacks: {
           onInit: function() {
-            // Set the full formatted content
             if (!item.isNew) {
               $('#summernote').summernote('code', item.content || item.name || '');
             }
@@ -3166,7 +3262,6 @@
             setTimeout(() => {
               $('#summernote').summernote('focus');
               $('.note-editable').focus();
-              // Place cursor at end of content
               const range = document.createRange();
               const sel = window.getSelection();
               const editableDiv = $('.note-editable')[0];
@@ -3174,7 +3269,6 @@
               range.collapse(false);
               sel.removeAllRanges();
               sel.addRange(range);
-              // Ensure proper display
               $('.note-editor').css('display', 'flex');
               $('.note-editing-area').css('display', 'flex');
               $('#summernote').css('display', 'flex');
@@ -3182,7 +3276,6 @@
           },
           onChange: function(contents) {
             if (!item.isNew) {
-              // Store the full formatted content
               item.content = contents;
               saveData();
             }
@@ -3198,7 +3291,6 @@
       popup.style.display = "flex";
       overlay.style.display = "block";
 
-      // Add date change event listener
       dueDateInput.addEventListener("change", function () {
         if (this.value) {
           const date = new Date(this.value);
@@ -3221,7 +3313,6 @@
         saveData();
       });
 
-      // Add clear date event listener
       clearDueDate.addEventListener("click", function () {
         dueDateInput.value = "";
         delete item.dueDate;
@@ -3246,9 +3337,9 @@
         if (item.isNew && content.trim() !== "") {
           const newItem = {
             id: item.id,
-            name: stripHtml(content).substring(0, 50), // Truncated for display
+            name: stripHtml(content).substring(0, 50),
             type: item.type,
-            content: content, // Full content preserved
+            content: content, 
             completed: item.type === "todo" ? false : undefined,
           };
 
@@ -3264,7 +3355,6 @@
           }
         }
 
-        // Clean up
         $('#summernote').empty();
         $('#summernote').summernote('destroy');
         popup.style.display = "none";
@@ -4146,6 +4236,8 @@
           scheduleBackupReminder();
         }
       }
+
+      initTutorial();
     }
 
     if (document.readyState === "loading") {
@@ -4234,13 +4326,12 @@
 
     function cleanupCompletedTodos() {
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to start of today
+      today.setHours(0, 0, 0, 0);
 
       let cleanupPerformed = false;
 
       appData.forEach((project) => {
         project.lists.forEach((list) => {
-          // Clean up main list items
           if (list.items) {
             const originalLength = list.items.length;
             list.items = list.items.filter((item) => {
@@ -4248,17 +4339,15 @@
               if (item.type !== "todo") return true;
               if (!item.completed) return true;
 
-              // If it's completed, check completion date
               if (item.completedAt) {
                 const completionDate = new Date(item.completedAt);
-                return completionDate >= today; // Keep only if completed today or later
+                return completionDate >= today;
               }
-              return true; // Keep items without completedAt for backward compatibility
+              return true; 
             });
             if (list.items.length < originalLength) cleanupPerformed = true;
           }
 
-          // Clean up sub-list items
           if (list.subLists) {
             list.subLists.forEach((subList) => {
               if (subList.items) {
@@ -4268,12 +4357,11 @@
                   if (item.type !== "todo") return true;
                   if (!item.completed) return true;
 
-                  // If it's completed, check completion date
                   if (item.completedAt) {
                     const completionDate = new Date(item.completedAt);
-                    return completionDate >= today; // Keep only if completed today or later
+                    return completionDate >= today;
                   }
-                  return true; // Keep items without completedAt for backward compatibility
+                  return true;
                 });
                 if (subList.items.length < originalLength) cleanupPerformed = true;
               }
@@ -4282,7 +4370,6 @@
         });
       });
 
-      // If any items were cleaned up, save and re-render
       if (cleanupPerformed) {
         saveData();
         renderProjects();
@@ -4324,22 +4411,18 @@
 
       if (existingProject) {
         if (currentIndex !== projectIndex) {
-          // For move operations, preserve the timeline
           const timelineContainer = existingProject.querySelector('.timeline-container');
           const nextSibling = projectsContainer.children[projectIndex] || null;
           projectsContainer.insertBefore(existingProject, nextSibling);
           return;
         }
         
-        // For non-move operations, preserve the timeline if it exists
         const timelineContainer = existingProject.querySelector('.timeline-container');
         existingProject.remove();
         
-        // Create new project element
         const newProjectElement = document.createElement('div');
         createProject(project, newProjectElement);
         
-        // If there was a timeline, replace the new timeline with the preserved one
         if (timelineContainer) {
           const newTimeline = newProjectElement.querySelector('.timeline-container');
           if (newTimeline) {
@@ -4352,7 +4435,6 @@
         return;
       }
 
-      // If project doesn't exist yet, create it normally
       const newProjectElement = document.createElement('div');
       createProject(project, newProjectElement);
       const nextSibling = projectsContainer.children[projectIndex] || null;
@@ -4389,6 +4471,265 @@
         }
       `;
       document.head.appendChild(style);
+    }
+
+    function initTutorial() {
+      if (localStorage.getItem('tutorialShown')) {
+        return;
+      }
+
+      if (appData.length === 0) {
+        const sampleProject = {
+          id: Date.now(),
+          name: "My First Project",
+          lists: [
+            {
+              id: Date.now() + 1,
+              name: "To Do",
+              items: [
+                {
+                  id: Date.now() + 2,
+                  type: "todo",
+                  content: "Try dragging this task to another list!",
+                  completed: false
+                }
+              ]
+            },
+            {
+              id: Date.now() + 3,
+              name: "In Progress",
+              items: []
+            },
+            {
+              id: Date.now() + 4,
+              name: "Done",
+              items: []
+            }
+          ]
+        };
+        appData.push(sampleProject);
+        saveData();
+        renderProjects();
+      }
+
+      setTimeout(() => {
+        const intro = introJs();
+        
+        intro.setOptions({
+          steps: [
+            {
+              title: 'Welcome to Taskan! 👋',
+              intro: "Taskan is a simple and easy to use task manager that helps you stay on top of your tasks. Taskan is an offline only app that stores your data locally on your device making it secure and private. You can export your data and import it in another device. Let's take a quick tour to help you get started with organizing your tasks.",
+              tooltipClass: 'hide-back-button welcome-step'
+            },
+            {
+              element: '#addProjectBtn',
+              title: 'Create Projects',
+              intro: 'Start by creating a new project. You can define the timeline here.',
+              position: 'bottom'
+            },
+            {
+              element: '.project:first-child .add-list-btn',
+              title: 'Add Lists',
+              intro: 'Within each project, you can create multiple lists to organize your tasks.',
+              position: 'left'
+            },
+            {
+              element: '.list:first-child button[title="Add Sub-list',
+              title: 'Sub Lists',
+              intro: 'You can add a sub list inside a lists to further group tasks.',
+              position: 'right'
+            },
+            {
+              element: '.list:first-child button[title="New Todo"]',
+              title: 'Add Tasks',
+              intro: 'Add todos or notes to your lists. You can track time, set due dates, and more!',
+              position: 'left'
+            },
+            {
+              element: '.list-items .list-item:first-child',
+              title: 'Manage Tasks',
+              intro: 'Drag and drop tasks between lists, edit them, track time, or mark them as complete.',
+              position: 'right'
+            },
+            {
+              element: '.list-items .list-item:first-child',
+              title: 'Task Options',
+              intro: 'Hover over a task to see options for editing, timing, coloring, and more.',
+              position: 'right'
+            },
+            {
+              element: '#themeToggleBtn',
+              title: 'Customize',
+              intro: 'Switch between light and dark themes for comfortable viewing.',
+              position: 'bottom'
+            },
+            {
+              element: '#autoBackupBtn',
+              title: 'Keep Your Data Safe',
+              intro: 'Export your data regularly to keep your tasks backed up.',
+              position: 'bottom'
+            },
+            {
+              element: '#importDataBtn',
+              title: 'Import Data',
+              intro: 'Import your data from a backup file.',
+              position: 'bottom'
+            },
+            {
+              title: 'Ready to Go! 🚀',
+              intro: "That's it! You're ready to start organizing your tasks. Need help? Look for tooltips when hovering over buttons."
+            }
+          ],
+          showProgress: true,
+          showBullets: false,
+          disableInteraction: false,
+          hideNext: false,
+          hidePrev: false,
+          exitOnOverlayClick: false,
+          exitOnEsc: false,
+          tooltipClass: 'custom-tooltip',
+          onbeforechange: function(targetElement) {
+            setTimeout(() => {
+              const prevButton = document.querySelector('.introjs-prevbutton');
+              if (prevButton) {
+                prevButton.style.display = this._currentStep === 0 ? 'none' : 'inline-block';
+              }
+            }, 0);
+          }
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+          .introjs-tooltip {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          }
+          
+          .introjs-button {
+            background-color: #555555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-shadow: none;
+            padding: 6px 12px;
+          }
+          
+          .introjs-button:hover {
+            background-color: #000;
+            color: white;
+          }
+          
+          [data-theme="dark"] .introjs-button:hover {
+            background-color: #666;
+          }
+          
+          .introjs-skipbutton {
+            color: var(--text-color);
+          }
+          
+          .introjs-progress {
+            background-color: var(--border-color);
+          }
+          
+          .introjs-progressbar {
+            background-color: #555555;
+          }
+          
+          .introjs-overlay {
+            backdrop-filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.5);
+          }
+          
+          .introjs-helperLayer {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(0);
+          }
+          
+          .introjs-helperLayer::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 12px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+            z-index: -1;
+          }
+          
+          .introjs-tooltiptext {
+            color: var(--text-color);
+          }
+          
+          .introjs-tooltip-title {
+            color: var(--text-color);
+            font-weight: bold;
+          }
+          
+          .hidden-if-no-project {
+            opacity: 0.5;
+            pointer-events: none;
+          }
+          
+          .hidden-if-no-list {
+            opacity: 0.5;
+            pointer-events: none;
+          }
+          
+          .hidden-if-no-item {
+            opacity: 0.5;
+            pointer-events: none;
+          }
+          
+          .introjs-helperLayer,
+          .introjs-overlay {
+            transition: all 0.3s ease-out !important;
+          }
+          
+          .introjs-tooltip {
+            z-index: 999999;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+          }
+
+          .hide-back-button .introjs-prevbutton {
+            display: none !important;
+          }
+
+          .hide-back-button .introjs-tooltipbuttons {
+            text-align: right;
+          }
+        `;
+        document.head.appendChild(style);
+
+        intro.start();
+        intro.oncomplete(() => {
+          localStorage.setItem('tutorialShown', 'true');
+        });
+
+        intro.onexit(() => {
+          if (!localStorage.getItem('tutorialShown')) {
+            if (appData.length === 1 && appData[0].name === "My First Project") {
+              appData = [];
+              saveData();
+              renderProjects();
+            }
+          }
+        });
+
+        intro.onbeforeexit(() => {
+          if (!localStorage.getItem('tutorialShown')) {
+            return confirm('Are you sure you want to exit the tutorial? Your progress will not be saved.');
+          }
+          return true;
+        });
+      }, 1000);
     }
   </script>
 </body>
