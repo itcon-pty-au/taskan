@@ -102,7 +102,7 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-      flex: 1; 
+      flex: 1;
     }
 
     .project {
@@ -472,22 +472,27 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;  /* Reduced from 32px */
-      height: 28px;  /* Reduced from 32px */
+      width: 28px;
+      /* Reduced from 32px */
+      height: 28px;
+      /* Reduced from 32px */
       margin-left: 5px;
       transition: width 0.2s ease;
     }
 
     .project-header button i,
     .list-header button i {
-      font-size: 12px;  /* Reduced from 14px */
+      font-size: 12px;
+      /* Reduced from 14px */
     }
 
     .project-header button.delete-confirm,
     .list-header button.delete-confirm {
       width: auto;
-      padding: 5px 8px;  /* Reduced horizontal padding */
-      font-size: 12px;  /* Added to match icon size */
+      padding: 5px 8px;
+      /* Reduced horizontal padding */
+      font-size: 12px;
+      /* Added to match icon size */
     }
 
     .project-header button:hover,
@@ -569,8 +574,8 @@
       background: var(--card-bg);
       border-radius: 12px;
       box-shadow: 0 0 0 1px var(--border-color),
-                  0 4px 20px rgba(0, 0, 0, 0.15),
-                  0 12px 40px rgba(0, 0, 0, 0.2);
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        0 12px 40px rgba(0, 0, 0, 0.2);
       z-index: 1001;
       flex-direction: column;
       overflow: hidden;
@@ -593,8 +598,8 @@
 
     [data-theme="dark"] .editor-popup {
       box-shadow: 0 0 0 1px var(--border-color),
-                  0 4px 20px rgba(0, 0, 0, 0.3),
-                  0 12px 40px rgba(0, 0, 0, 0.4);
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
     [data-theme="dark"] .editor-overlay {
@@ -805,14 +810,17 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 28px;  /* Reduced from 32px */
-      height: 28px;  /* Reduced from 32px */
+      width: 28px;
+      /* Reduced from 32px */
+      height: 28px;
+      /* Reduced from 32px */
       margin-left: 5px;
       transition: width 0.2s ease;
     }
 
     .sub-list-header button i {
-      font-size: 12px;  /* Reduced from 14px */
+      font-size: 12px;
+      /* Reduced from 14px */
     }
 
     .sub-list-header button:hover {
@@ -825,8 +833,10 @@
 
     .sub-list-header button.delete-confirm {
       width: auto;
-      padding: 5px 8px;  /* Reduced horizontal padding */
-      font-size: 12px;  /* Added to match icon size */
+      padding: 5px 8px;
+      /* Reduced horizontal padding */
+      font-size: 12px;
+      /* Added to match icon size */
     }
 
     .sub-list-items {
@@ -1733,7 +1743,7 @@
       overflow-wrap: break-word;
       max-width: 100%;
     }
-    
+
     .truncated-text {
       display: inline;
       word-break: break-word;
@@ -1819,10 +1829,12 @@
         transform: translateY(0) translateX(-50%) scale(1);
         opacity: 0;
       }
+
       50% {
         transform: translateY(-10px) translateX(-40%) scale(1.2);
         opacity: 0.5;
       }
+
       100% {
         transform: translateY(-20px) translateX(-30%) scale(1.4);
         opacity: 0;
@@ -1830,12 +1842,16 @@
     }
 
     @keyframes wiggle {
-      0%, 100% {
+
+      0%,
+      100% {
         transform: rotate(0deg);
       }
+
       25% {
         transform: rotate(-8deg);
       }
+
       75% {
         transform: rotate(8deg);
       }
@@ -1991,6 +2007,304 @@
       font-size: 1.2em;
       vertical-align: middle;
     }
+
+    .settings-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .settings-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: var(--card-bg);
+      min-width: 200px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      padding: 8px;
+    }
+
+    .settings-dropdown.active .settings-content {
+      display: block;
+    }
+
+    .settings-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .settings-item:hover {
+      background-color: var(--item-bg);
+    }
+
+    .settings-item span {
+      color: var(--text-color);
+    }
+
+    .settings-item button {
+      padding: 5px 10px;
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .settings-item button:hover {
+      background-color: #000;
+    }
+
+    [data-theme="dark"] .settings-item button:hover {
+      background-color: #666;
+    }
+
+    .backup-location-item {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 8px;
+    }
+
+    .backup-location-container {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .backup-path {
+      font-size: 0.9em;
+      color: var(--text-color);
+      opacity: 0.8;
+      word-break: break-all;
+      max-width: 150px;
+    }
+
+    .truncated-text,
+    .full-text {
+      display: inline;
+    }
+
+    .history-table td {
+      word-break: break-word;
+      line-height: 1.4;
+      vertical-align: top;
+      padding: 12px 8px;
+    }
+
+    .history-table .read-more-btn {
+      background: none;
+      border: none;
+      color: #0066cc;
+      cursor: pointer;
+      padding: 2px 5px;
+      font-size: 0.9em;
+      margin-left: 5px;
+    }
+
+    .history-table .read-more-btn:hover {
+      text-decoration: underline;
+    }
+
+    .introjs-tooltip {
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .introjs-button {
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      text-shadow: none;
+      padding: 6px 12px;
+    }
+
+    .introjs-button:hover {
+      background-color: #000;
+      color: white;
+    }
+
+    [data-theme="dark"] .introjs-button:hover {
+      background-color: #666;
+    }
+
+    .introjs-skipbutton {
+      color: var(--text-color);
+    }
+
+    .introjs-progress {
+      background-color: var(--border-color);
+    }
+
+    .introjs-progressbar {
+      background-color: #555555;
+    }
+
+    .introjs-overlay {
+      backdrop-filter: blur(10px);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .introjs-helperLayer {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(0);
+    }
+
+    .introjs-helperLayer::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border-radius: 12px;
+      background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3));
+      z-index: -1;
+    }
+
+    .introjs-tooltiptext {
+      color: var(--text-color);
+    }
+
+    .introjs-tooltip-title {
+      color: var(--text-color);
+      font-weight: bold;
+    }
+
+    .hidden-if-no-project {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .hidden-if-no-list {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .hidden-if-no-item {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .introjs-helperLayer,
+    .introjs-overlay {
+      transition: all 0.3s ease-out !important;
+    }
+
+    .introjs-tooltip {
+      z-index: 999999;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .hide-back-button .introjs-prevbutton {
+      display: none !important;
+    }
+
+    .hide-back-button .introjs-tooltipbuttons {
+      text-align: right;
+    }
+
+    .locale-selector {
+      position: relative;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .locale-selector input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      font-size: 14px;
+    }
+
+    .locale-selector input:focus {
+      outline: none;
+      border-color: #555555;
+    }
+
+    .settings-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .settings-item span {
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .toggle-switch-modern {
+      position: relative;
+      width: 50px;
+      height: 24px;
+      margin: 0;
+    }
+
+    .toggle-switch-checkbox {
+      display: none;
+    }
+
+    .toggle-switch-label {
+      display: block;
+      overflow: hidden;
+      cursor: pointer;
+      border: 0 solid #bbb;
+      border-radius: 24px;
+      margin: 0;
+    }
+
+    .toggle-switch-label:before {
+      content: "";
+      display: block;
+      width: 16px;
+      height: 16px;
+      margin: 4px;
+      background: #FFFFFF;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 26px;
+      border-radius: 50%;
+      transition: all .3s ease;
+    }
+
+    .toggle-switch-checkbox:checked + .toggle-switch-label {
+      background-color: #555555;
+    }
+
+    .toggle-switch-checkbox:checked + .toggle-switch-label:before {
+      right: 4px;
+    }
+
+    .toggle-switch-label {
+      background-color: #555555;
+      transition: all .3s ease;
+    }
+
+    .theme-toggle i {
+      color: var(--text-color);
+      font-size: 14px;
+    }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
   <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
@@ -2011,7 +2325,7 @@
         <button id="autoBackupBtn" title="Setup Auto-backup"><i class="fa-solid fa-file-export"></i></button>
         <button id="historyBtn" title="View Task History"><i class="fa fa-history"></i></button>
         <button id="themeToggleBtn" title="Toggle Theme">
-          <i class="fas fa-sun"></i>
+          <i class="fas fa-moon"></i>
         </button>
         <a href="https://buymeacoffee.com/itcon" target="_blank" id="coffeeBtn">
           <button title="Buy me a coffee">
@@ -2026,7 +2340,8 @@
       <script>
         document.write(new Date().getFullYear());
       </script>
-      ITCON • Made with <span class="heart">♥</span> in Melbourne, AU. Submit feature requests, issues at <a href="https://github.com/itcon-pty-au/taskan" target="_blank" class="github-link" title="View on GitHub">
+      ITCON • Made with <span class="heart">♥</span> in Melbourne, AU. Submit feature requests, issues at <a
+        href="https://github.com/itcon-pty-au/taskan" target="_blank" class="github-link" title="View on GitHub">
         <i class="fab fa-github"></i>
       </a>
     </div>
@@ -2276,8 +2591,8 @@
       };
 
       const collapseBtn = document.createElement("button");
-      collapseBtn.innerHTML = project.collapsed ? 
-        '<i class="fas fa-chevron-down"></i>' : 
+      collapseBtn.innerHTML = project.collapsed ?
+        '<i class="fas fa-chevron-down"></i>' :
         '<i class="fas fa-chevron-up"></i>';
       collapseBtn.title = project.collapsed ? "Expand" : "Collapse";
       collapseBtn.onclick = () => {
@@ -2979,10 +3294,10 @@
       }
 
       itemContent.innerHTML = formatTextWithLinks(
-        stripHtml(item.content || item.name || "").substring(0, 100) + 
-        (item.content && item.content.length > 100 ? "..." : "")
+        stripHtml(item.content || item.name || "").substring(0, 100) +
+        (stripHtml(item.content || item.name || "").length > 100 ? "..." : "")
       );
-      
+
       itemContent.addEventListener("click", () => openEditor(item));
       itemContent.style.cursor = "pointer";
 
@@ -3193,33 +3508,44 @@
                 appData = importedData;
                 saveData();
                 renderProjects();
-                
-                // Visual confirmation
-                const originalText = importDataBtn.textContent;
-                const originalBg = importDataBtn.style.backgroundColor;
-                importDataBtn.textContent = "✓ Imported";
+
+                // Store original icon HTML
+                const originalContent = importDataBtn.innerHTML;
+
+                // Show success message (tick and text)
+                importDataBtn.innerHTML = "✓ Imported";
                 importDataBtn.style.backgroundColor = "#28a745";
-                
+
                 // Reset after 2 seconds
                 setTimeout(() => {
-                  importDataBtn.textContent = originalText;
-                  importDataBtn.style.backgroundColor = originalBg;
+                  importDataBtn.innerHTML = '<i class="fa-solid fa-file-import"></i>';
+                  importDataBtn.style.backgroundColor = "";
                 }, 2000);
               } else {
-                // Error indication
-                importDataBtn.textContent = "⚠ Invalid Format";
+                // Store original icon HTML
+                const originalContent = importDataBtn.innerHTML;
+
+                // Show error message
+                importDataBtn.innerHTML = "⚠ Invalid Format";
                 importDataBtn.style.backgroundColor = "#dc3545";
+
+                // Reset after 2 seconds
                 setTimeout(() => {
-                  importDataBtn.textContent = "Import";
+                  importDataBtn.innerHTML = originalContent; // Restore the icon
                   importDataBtn.style.backgroundColor = "";
                 }, 2000);
               }
             } catch (error) {
-              // Error indication
-              importDataBtn.textContent = "⚠ Invalid File";
+              // Store original icon HTML
+              const originalContent = importDataBtn.innerHTML;
+
+              // Show error message
+              importDataBtn.innerHTML = "⚠ Invalid File";
               importDataBtn.style.backgroundColor = "#dc3545";
+
+              // Reset after 2 seconds
               setTimeout(() => {
-                importDataBtn.textContent = "Import";
+                importDataBtn.innerHTML = originalContent; // Restore the icon
                 importDataBtn.style.backgroundColor = "";
               }, 2000);
             }
@@ -3235,18 +3561,15 @@
       document.documentElement.setAttribute("data-theme", theme);
       localStorage.setItem("theme", theme);
       currentTheme = theme;
-      themeToggleBtn.innerHTML =
-        theme === "dark"
+
+      // Only update button if it exists
+      const themeToggleBtnInMenu = document.getElementById('themeToggleBtn');
+      if (themeToggleBtnInMenu) {
+        themeToggleBtnInMenu.innerHTML = theme === "dark"
           ? '<i class="fas fa-sun"></i>'
           : '<i class="fas fa-moon"></i>';
+      }
     }
-
-    setTheme(currentTheme);
-
-    themeToggleBtn.addEventListener("click", () => {
-      const newTheme = currentTheme === "light" ? "dark" : "light";
-      setTheme(newTheme);
-    });
 
     document.addEventListener("DOMContentLoaded", () => {
       Coloris({
@@ -3313,11 +3636,11 @@
         placeholder: "Start typing...",
         focus: true,
         callbacks: {
-          onInit: function() {
+          onInit: function () {
             if (!item.isNew) {
               $('#summernote').summernote('code', item.content || item.name || '');
             }
-            
+
             setTimeout(() => {
               $('#summernote').summernote('focus');
               $('.note-editable').focus();
@@ -3333,7 +3656,7 @@
               $('#summernote').css('display', 'flex');
             }, 100);
           },
-          onChange: function(contents) {
+          onChange: function (contents) {
             if (!item.isNew) {
               item.content = contents;
               saveData();
@@ -3356,14 +3679,14 @@
           date.setHours(0, 0, 0, 0);
           item.dueDate = date.toISOString();
           updateDueDateInfo(item.dueDate);
-          
-          const project = appData.find(p => 
-            p.lists.some(l => 
-              l.items.some(i => i.id === item.id) || 
+
+          const project = appData.find(p =>
+            p.lists.some(l =>
+              l.items.some(i => i.id === item.id) ||
               (l.subLists && l.subLists.some(sl => sl.items.some(i => i.id === item.id)))
             )
           );
-          
+
           if (project) {
             saveData();
             renderSingleProject(project);
@@ -3376,14 +3699,14 @@
         dueDateInput.value = "";
         delete item.dueDate;
         dueDateInfo.textContent = "";
-        
-        const project = appData.find(p => 
-          p.lists.some(l => 
-            l.items.some(i => i.id === item.id) || 
+
+        const project = appData.find(p =>
+          p.lists.some(l =>
+            l.items.some(i => i.id === item.id) ||
             (l.subLists && l.subLists.some(sl => sl.items.some(i => i.id === item.id)))
           )
         );
-        
+
         if (project) {
           saveData();
           renderSingleProject(project);
@@ -3508,14 +3831,14 @@
 
     function formatDate(dateString) {
       const date = new Date(dateString);
-      return date.toLocaleString("en-AU", {
+      return date.toLocaleString(navigator.language, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
-        hour12: false,
+        hour12: false
       });
     }
 
@@ -3536,7 +3859,7 @@
         tbody.innerHTML = filteredHistory
           .map((entry, index) => {
             const plainText = stripHtml(entry.task);
-            
+
             let taskDisplay;
             if (plainText.length > 100) {
               taskDisplay = `
@@ -3565,7 +3888,7 @@
           .join("");
 
         tbody.querySelectorAll(".read-more-btn").forEach((btn) => {
-          btn.addEventListener("click", function() {
+          btn.addEventListener("click", function () {
             const index = this.getAttribute('data-index');
             const truncatedText = tbody.querySelector(`.truncated-text[data-index="${index}"]`);
             const fullText = tbody.querySelector(`.full-text[data-index="${index}"]`);
@@ -3583,7 +3906,7 @@
         });
 
         tbody.querySelectorAll(".delete-history-btn").forEach((btn) => {
-          btn.addEventListener("click", function() {
+          btn.addEventListener("click", function () {
             const row = this.closest("tr");
             const index = parseInt(row.dataset.index);
             taskHistory.splice(index, 1);
@@ -3866,199 +4189,11 @@
       document.querySelector(".form-overlay").style.display = "none";
     });
 
-    function isFileSystemAccessSupported() {
-      return (
-        window.showDirectoryPicker &&
-        typeof window.showDirectoryPicker === "function"
-      );
-    }
-
-    async function getBackupDirectory() {
-      const serializedHandle = localStorage.getItem(AUTO_BACKUP_KEY);
-      if (!serializedHandle) return null;
-
-      try {
-        const savedData = JSON.parse(serializedHandle);
-
-        if (window.currentDirHandle) {
-          return window.currentDirHandle;
-        }
-
-        try {
-          const dirHandle = await window.showDirectoryPicker({
-            mode: "readwrite",
-            startIn: savedData.name,
-          });
-
-          const newSerializedHandle = await serializeDirectoryHandle(
-            dirHandle
-          );
-          localStorage.setItem(AUTO_BACKUP_KEY, newSerializedHandle);
-          return dirHandle;
-        } catch (err) {
-          try {
-            const dirHandle = await window.showDirectoryPicker({
-              mode: "readwrite",
-            });
-
-            const newSerializedHandle = await serializeDirectoryHandle(
-              dirHandle
-            );
-            localStorage.setItem(AUTO_BACKUP_KEY, newSerializedHandle);
-            return dirHandle;
-          } catch (err2) {
-            if (err2.name === "AbortError") {
-              console.log("User cancelled directory selection");
-              return null;
-            }
-            throw err2;
-          }
-        }
-      } catch (err) {
-        console.error("Error getting backup directory:", err);
-        return null;
-      }
-    }
-
     async function setupAutoBackup() {
-      if (!isFileSystemAccessSupported()) {
-        alert(
-          "Your browser does not support automatic backups. Please use Chrome, Edge, or Opera."
-        );
-        return;
-      }
-
       try {
-        console.log("Attempting to show directory picker...");
-
-        const dirHandle = await window
-          .showDirectoryPicker({
-            mode: "readwrite",
-          })
-          .catch((err) => {
-            console.error("Directory picker error:", err);
-            throw err;
-          });
-
-        window.currentDirHandle = dirHandle;
-
-        try {
-          const permission = await dirHandle.requestPermission({
-            mode: "readwrite",
-          });
-          console.log("Initial permission status:", permission);
-
-          if (permission !== "granted") {
-            throw new Error("Permission not granted for directory access");
-          }
-        } catch (permErr) {
-          console.error("Permission error:", permErr);
-          throw permErr;
-        }
-
-        try {
-          const serializedHandle = await serializeDirectoryHandle(dirHandle);
-          console.log("Handle serialized successfully");
-          localStorage.setItem(AUTO_BACKUP_KEY, serializedHandle);
-          console.log("Handle stored in localStorage");
-        } catch (serializeErr) {
-          console.error("Serialization error:", serializeErr);
-          throw serializeErr;
-        }
-
-        console.log("Attempting initial backup...");
-        const backupSuccess = await performAutoBackup(true);
-        console.log("Initial backup result:", backupSuccess);
-
-        if (backupSuccess) {
-          const formattedDate = new Date().toLocaleString("en-AU", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          });
-          localStorage.setItem(LAST_BACKUP_KEY, formattedDate);
-          alert("Export completed successfully!");
-          autoBackupInterval = setInterval(
-            performAutoBackup,
-            BACKUP_INTERVAL
-          );
-          console.log("Backup interval set");
-        } else {
-          throw new Error(
-            "Initial backup failed - no error thrown but backup returned false"
-          );
-        }
-
-        delete window.currentDirHandle;
-      } catch (err) {
-        delete window.currentDirHandle;
-      }
-    }
-
-    async function serializeDirectoryHandle(dirHandle) {
-      const permission = await dirHandle.requestPermission({
-        mode: "readwrite",
-      });
-      if (permission !== "granted") {
-        throw new Error("Permission not granted for directory access");
-      }
-
-      return JSON.stringify({
-        kind: dirHandle.kind,
-        name: dirHandle.name,
-
-        permissionToken: Date.now(),
-      });
-    }
-
-    async function performAutoBackup(isUserInitiated = false) {
-      console.log("Starting backup process...");
-
-      const existingConfig = localStorage.getItem(AUTO_BACKUP_KEY);
-      const existingTimestamp = localStorage.getItem(LAST_BACKUP_KEY);
-
-      const dirHandle = isUserInitiated
-        ? await getBackupDirectory()
-        : await getBackupDirectoryWithoutPicker();
-
-      if (!dirHandle) {
-        console.log("No directory handle available - needs user interaction");
-        scheduleBackupReminder();
-        if (existingConfig)
-          localStorage.setItem(AUTO_BACKUP_KEY, existingConfig);
-        if (existingTimestamp)
-          localStorage.setItem(LAST_BACKUP_KEY, existingTimestamp);
-        return false;
-      }
-
-      try {
-        console.log("Verifying write permission...");
-        const permission = await dirHandle.queryPermission({
-          mode: "readwrite",
-        });
-        console.log("Permission status:", permission);
-
-        if (permission !== "granted") {
-          const newPermission = await dirHandle.requestPermission({
-            mode: "readwrite",
-          });
-          if (newPermission !== "granted") {
-            console.log("Permission not granted after request");
-            if (existingConfig)
-              localStorage.setItem(AUTO_BACKUP_KEY, existingConfig);
-            if (existingTimestamp)
-              localStorage.setItem(LAST_BACKUP_KEY, existingTimestamp);
-            return false;
-          }
-        }
-
+        const data = JSON.stringify(appData, null, 2);
         const now = new Date();
-        const timestamp =
-          now.getFullYear() +
+        const timestamp = now.getFullYear() +
           String(now.getMonth() + 1).padStart(2, "0") +
           String(now.getDate()).padStart(2, "0") +
           "T" +
@@ -4067,67 +4202,96 @@
           String(now.getSeconds()).padStart(2, "0");
 
         const filename = `kanban-backup-${timestamp}.json`;
-        console.log("Creating backup file:", filename);
 
-        const fileHandle = await dirHandle.getFileHandle(filename, {
-          create: true,
-        });
-        const writable = await fileHandle.createWritable();
-
-        const data = JSON.stringify(appData, null, 2);
-        await writable.write(data);
-        await writable.close();
-
-        console.log("Backup completed successfully:", filename);
-
-        const formattedDate = now.toLocaleString("en-AU", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        });
-
-        localStorage.setItem(LAST_BACKUP_KEY, formattedDate);
-
+        // Store original icon HTML
         const autoBackupBtn = document.getElementById("autoBackupBtn");
-        if (autoBackupBtn) {
-          autoBackupBtn.classList.add("backup-nudge");
-          autoBackupBtn.title = "⚠️ Backup needed - Click to perform backup";
-          autoBackupBtn.innerHTML = '⚠️ <i class="fa-solid fa-file-export"></i>';
+
+        try {
+          // Show file save dialog
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'JSON File',
+              accept: { 'application/json': ['.json'] },
+            }],
+          });
+
+          // Create a FileSystemWritableFileStream to write to
+          const writable = await fileHandle.createWritable();
+          // Write the contents
+          await writable.write(data);
+          await writable.close();
+
+          // Show success message
+          autoBackupBtn.innerHTML = "✓ Exported";
+          autoBackupBtn.style.backgroundColor = "#28a745";
+
+          // Update last backup time and UI
+          updateBackupStatus(now);
+
+          // Reset after 2 seconds
+          setTimeout(() => {
+            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+            autoBackupBtn.style.backgroundColor = "";
+          }, 2000);
+
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            try {
+              // Fall back to regular download if the picker fails
+              const blob = new Blob([data], { type: 'application/json' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              document.body.removeChild(a);
+              
+              // Show success message
+              autoBackupBtn.innerHTML = "✓ Exported";
+              autoBackupBtn.style.backgroundColor = "#28a745";
+              
+              // Update last backup time and UI
+              updateBackupStatus(now);
+
+              // Reset after 2 seconds
+              setTimeout(() => {
+                autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+                autoBackupBtn.style.backgroundColor = "";
+              }, 2000);
+
+            } catch (downloadErr) {
+              // Show error message
+              autoBackupBtn.innerHTML = "⚠ Invalid File";
+              autoBackupBtn.style.backgroundColor = "#dc3545";
+              
+              // Reset after 2 seconds
+              setTimeout(() => {
+                autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+                autoBackupBtn.style.backgroundColor = "";
+              }, 2000);
+            }
+          } else {
+            // User cancelled, restore original icon
+            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+            autoBackupBtn.style.backgroundColor = "";
+            return;
+          }
         }
-
-        setTimeout(nudgeBackup, 60 * 60 * 1000);
-
-        return true;
       } catch (err) {
-        console.error("Error during backup:", err);
-        nudgeBackup();
-        if (existingConfig)
-          localStorage.setItem(AUTO_BACKUP_KEY, existingConfig);
-        if (existingTimestamp)
-          localStorage.setItem(LAST_BACKUP_KEY, existingTimestamp);
-        return false;
-      }
-    }
-
-    async function getBackupDirectoryWithoutPicker() {
-      const serializedHandle = localStorage.getItem(AUTO_BACKUP_KEY);
-      if (!serializedHandle) return null;
-
-      try {
-        const savedData = JSON.parse(serializedHandle);
-
-        if (window.currentDirHandle) {
-          return window.currentDirHandle;
-        }
-
-        return null;
-      } catch (err) {
-        console.error("Error parsing backup directory data:", err);
-        return null;
+        console.error('Error during backup:', err);
+        // Show error message
+        const autoBackupBtn = document.getElementById("autoBackupBtn");
+        autoBackupBtn.innerHTML = "⚠ Invalid File";
+        autoBackupBtn.style.backgroundColor = "#dc3545";
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+          autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+          autoBackupBtn.style.backgroundColor = "";
+        }, 2000);
       }
     }
 
@@ -4148,75 +4312,15 @@
 
     function updateTopMenu() {
       const autoBackupBtn = document.getElementById("autoBackupBtn");
-      if (autoBackupBtn && isFileSystemAccessSupported()) {
-        autoBackupBtn.title = localStorage.getItem(AUTO_BACKUP_KEY)
-          ? "Change Auto-backup Folder"
-          : "Setup Auto-backup";
+      if (autoBackupBtn) {
+        autoBackupBtn.title = "Export Data";
         autoBackupBtn.addEventListener("click", setupAutoBackup);
-      }
-    }
-
-    async function checkAndPerformBackup() {
-      const lastBackupStr = localStorage.getItem(LAST_BACKUP_KEY);
-      const now = new Date();
-
-      if (!lastBackupStr) {
-        console.log("No previous backup found, performing initial backup...");
-        const success = await performAutoBackup();
-        if (success) {
-          const formattedDate = now.toLocaleString("en-AU", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          });
-          localStorage.setItem(LAST_BACKUP_KEY, formattedDate);
-        }
-        return;
-      }
-
-      const lastBackupDate = new Date(lastBackupStr);
-
-      if (now - lastBackupDate >= BACKUP_INTERVAL) {
-        console.log(
-          `Last backup was at ${lastBackupStr}, performing new backup...`
-        );
-        const success = await performAutoBackup();
-        if (success) {
-          const formattedDate = now.toLocaleString("en-AU", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          });
-          localStorage.setItem(LAST_BACKUP_KEY, formattedDate);
-        }
-      } else {
-        console.log(
-          `Last backup was at ${lastBackupStr}, next backup in ${Math.round(
-            (BACKUP_INTERVAL - (now - lastBackupDate)) / 1000 / 60
-          )} minutes`
-        );
-      }
-
-      if (localStorage.getItem(AUTO_BACKUP_KEY)) {
-        if (autoBackupInterval) {
-          clearInterval(autoBackupInterval);
-        }
-        autoBackupInterval = setInterval(performAutoBackup, BACKUP_INTERVAL);
       }
     }
 
     async function initializeApp() {
       console.log("Initializing app...");
 
-      const backupConfig = localStorage.getItem(AUTO_BACKUP_KEY);
       const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
 
       cleanupCompletedTodos();
@@ -4225,78 +4329,22 @@
 
       if (appData.length > 0) {
         const lastBackupDate = lastBackupTime
-          ? new Date(
-            lastBackupTime.replace(
-              /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}:\d{2}:\d{2})/,
-              "$3-$2-$1T$4"
-            )
-          )
+          ? new Date(lastBackupTime.replace(
+            /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}:\d{2}:\d{2})/,
+            "$3-$2-$1T$4"
+          ))
           : null;
         const now = new Date();
 
-        if (
-          !lastBackupDate ||
-          now.getTime() - lastBackupDate.getTime() > 60 * 60 * 1000
-        ) {
+        if (!lastBackupDate || now.getTime() - lastBackupDate.getTime() > 60 * 60 * 1000) {
           nudgeBackup();
         } else {
-          const timeUntilNextNudge =
-            60 * 60 * 1000 - (now.getTime() - lastBackupDate.getTime());
+          const timeUntilNextNudge = 60 * 60 * 1000 - (now.getTime() - lastBackupDate.getTime());
           setTimeout(nudgeBackup, timeUntilNextNudge);
         }
       }
 
-      if (backupConfig) {
-        localStorage.setItem(AUTO_BACKUP_KEY, backupConfig);
-      }
-      if (lastBackupTime) {
-        localStorage.setItem(LAST_BACKUP_KEY, lastBackupTime);
-      }
-
       cleanupInvalidDates();
-
-      if (backupConfig) {
-        console.log(
-          "Found existing backup configuration, checking backup status..."
-        );
-        try {
-          const lastBackupStr = localStorage.getItem(LAST_BACKUP_KEY);
-          if (!lastBackupStr) {
-            console.log(
-              "No previous backup timestamp found, scheduling reminder..."
-            );
-            scheduleBackupReminder();
-            return;
-          }
-
-          const now = new Date();
-          const lastBackupDate = parseDateString(lastBackupStr);
-
-          if (isNaN(lastBackupDate.getTime()) || lastBackupDate > now) {
-            console.log(
-              "Invalid or future backup date detected, scheduling reminder..."
-            );
-            scheduleBackupReminder();
-            return;
-          }
-
-          const timeSinceLastBackup = now - lastBackupDate;
-          if (timeSinceLastBackup >= BACKUP_INTERVAL) {
-            console.log("Backup interval exceeded, scheduling reminder...");
-            scheduleBackupReminder();
-          } else {
-            const nextBackupIn = BACKUP_INTERVAL - timeSinceLastBackup;
-            console.log(
-              `Next backup in ${Math.round(nextBackupIn / 1000 / 60)} minutes`
-            );
-            setTimeout(scheduleBackupReminder, nextBackupIn);
-          }
-        } catch (err) {
-          console.error("Error during backup check:", err);
-          scheduleBackupReminder();
-        }
-      }
-
       initTutorial();
     }
 
@@ -4343,46 +4391,15 @@
 
     function checkStorageIntegrity() {
       console.log("Checking storage integrity...");
-
-      const backupConfig = localStorage.getItem(AUTO_BACKUP_KEY);
       const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
 
-      if (backupConfig && !lastBackupTime) {
-        console.log(
-          "Backup config exists but last backup time is missing. Resetting backup config."
-        );
-        localStorage.removeItem(AUTO_BACKUP_KEY);
-      }
-
-      if (lastBackupTime && !backupConfig) {
-        console.log(
-          "Last backup time exists but backup config is missing. Clearing last backup time."
-        );
-        localStorage.removeItem(LAST_BACKUP_KEY);
+      if (!lastBackupTime) {
+        console.log("No last backup time found");
+        nudgeBackup();
       }
     }
 
     checkStorageIntegrity();
-
-    function parseDateString(dateStr) {
-      try {
-        const [datePart, timePart] = dateStr.split(", ");
-        const [day, month, year] = datePart.split("/");
-        const [hours, minutes, seconds] = timePart.split(":");
-
-        return new Date(
-          parseInt(year),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(hours),
-          parseInt(minutes),
-          parseInt(seconds)
-        );
-      } catch (err) {
-        console.error("Error parsing date string:", err);
-        return new Date(NaN);
-      }
-    }
 
     function cleanupCompletedTodos() {
       const today = new Date();
@@ -4403,7 +4420,7 @@
                 const completionDate = new Date(item.completedAt);
                 return completionDate >= today;
               }
-              return true; 
+              return true;
             });
             if (list.items.length < originalLength) cleanupPerformed = true;
           }
@@ -4458,8 +4475,6 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", addHistoryStyles);
-
     function renderSingleProject(project) {
       const projectIndex = appData.findIndex(p => p.id === project.id);
       if (projectIndex === -1) return;
@@ -4476,20 +4491,20 @@
           projectsContainer.insertBefore(existingProject, nextSibling);
           return;
         }
-        
+
         const timelineContainer = existingProject.querySelector('.timeline-container');
         existingProject.remove();
-        
+
         const newProjectElement = document.createElement('div');
         createProject(project, newProjectElement);
-        
+
         if (timelineContainer) {
           const newTimeline = newProjectElement.querySelector('.timeline-container');
           if (newTimeline) {
             newTimeline.replaceWith(timelineContainer);
           }
         }
-        
+
         const nextSibling = projectsContainer.children[projectIndex] || null;
         projectsContainer.insertBefore(newProjectElement, nextSibling);
         return;
@@ -4499,38 +4514,6 @@
       createProject(project, newProjectElement);
       const nextSibling = projectsContainer.children[projectIndex] || null;
       projectsContainer.insertBefore(newProjectElement, nextSibling);
-    }
-
-    function addHistoryStyles() {
-      const style = document.createElement('style');
-      style.textContent = `
-        .truncated-text,
-        .full-text {
-          display: inline;
-        }
-
-        .history-table td {
-          word-break: break-word;
-          line-height: 1.4;
-          vertical-align: top;
-          padding: 12px 8px;
-        }
-
-        .history-table .read-more-btn {
-          background: none;
-          border: none;
-          color: #0066cc;
-          cursor: pointer;
-          padding: 2px 5px;
-          font-size: 0.9em;
-          margin-left: 5px;
-        }
-
-        .history-table .read-more-btn:hover {
-          text-decoration: underline;
-        }
-      `;
-      document.head.appendChild(style);
     }
 
     function initTutorial() {
@@ -4574,7 +4557,7 @@
 
       setTimeout(() => {
         const intro = introJs();
-        
+
         intro.setOptions({
           steps: [
             {
@@ -4650,7 +4633,7 @@
           exitOnEsc: false,
           skipLabel: '×',
           tooltipClass: 'custom-tooltip',
-          onbeforechange: function(targetElement) {
+          onbeforechange: function (targetElement) {
             setTimeout(() => {
               const prevButton = document.querySelector('.introjs-prevbutton');
               if (prevButton) {
@@ -4659,115 +4642,6 @@
             }, 0);
           }
         });
-
-        const style = document.createElement('style');
-        style.textContent = `
-          .introjs-tooltip {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-          }
-          
-          .introjs-button {
-            background-color: #555555;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            text-shadow: none;
-            padding: 6px 12px;
-          }
-          
-          .introjs-button:hover {
-            background-color: #000;
-            color: white;
-          }
-          
-          [data-theme="dark"] .introjs-button:hover {
-            background-color: #666;
-          }
-          
-          .introjs-skipbutton {
-            color: var(--text-color);
-          }
-          
-          .introjs-progress {
-            background-color: var(--border-color);
-          }
-          
-          .introjs-progressbar {
-            background-color: #555555;
-          }
-          
-          .introjs-overlay {
-            backdrop-filter: blur(10px);
-            background-color: rgba(0, 0, 0, 0.5);
-          }
-          
-          .introjs-helperLayer {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(0);
-          }
-          
-          .introjs-helperLayer::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
-            border-radius: 12px;
-            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
-            z-index: -1;
-          }
-          
-          .introjs-tooltiptext {
-            color: var(--text-color);
-          }
-          
-          .introjs-tooltip-title {
-            color: var(--text-color);
-            font-weight: bold;
-          }
-          
-          .hidden-if-no-project {
-            opacity: 0.5;
-            pointer-events: none;
-          }
-          
-          .hidden-if-no-list {
-            opacity: 0.5;
-            pointer-events: none;
-          }
-          
-          .hidden-if-no-item {
-            opacity: 0.5;
-            pointer-events: none;
-          }
-          
-          .introjs-helperLayer,
-          .introjs-overlay {
-            transition: all 0.3s ease-out !important;
-          }
-          
-          .introjs-tooltip {
-            z-index: 999999;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-          }
-
-          .hide-back-button .introjs-prevbutton {
-            display: none !important;
-          }
-
-          .hide-back-button .introjs-tooltipbuttons {
-            text-align: right;
-          }
-        `;
-        document.head.appendChild(style);
 
         intro.start();
         intro.oncomplete(() => {
@@ -4778,20 +4652,59 @@
         let skipButtonClicked = false;
 
         // Add click handler for skip button
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
           if (e.target.classList.contains('introjs-skipbutton')) {
             skipButtonClicked = true;
           }
         }, true);
 
         // Update the onexit handler
-        intro.onexit(function() {
+        intro.onexit(function () {
           if (skipButtonClicked) {
             localStorage.setItem('tutorialShown', 'true');
           }
           skipButtonClicked = false; // Reset the flag
         });
       }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Set initial theme
+      setTheme(currentTheme);
+
+      // Theme toggle button
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      themeToggleBtn.innerHTML = currentTheme === "dark" 
+        ? '<i class="fas fa-sun"></i>' 
+        : '<i class="fas fa-moon"></i>';
+
+      themeToggleBtn.addEventListener('click', () => {
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+        setTheme(newTheme);
+        themeToggleBtn.innerHTML = newTheme === "dark" 
+          ? '<i class="fas fa-sun"></i>' 
+          : '<i class="fas fa-moon"></i>';
+      });
+    });
+
+    function updateBackupStatus(now) {
+      const formattedDate = now.toLocaleString(navigator.language, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+      localStorage.setItem(LAST_BACKUP_KEY, formattedDate);
+
+      const autoBackupBtn = document.getElementById("autoBackupBtn");
+      if (autoBackupBtn) {
+        autoBackupBtn.classList.remove("backup-nudge");
+      }
+
+      setTimeout(nudgeBackup, 60 * 60 * 1000);
     }
   </script>
 </body>
