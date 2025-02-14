@@ -2305,6 +2305,147 @@
       color: var(--text-color);
       font-size: 14px;
     }
+
+    /* Add these styles in the existing <style> section */
+    .due-date-calendar {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--card-bg);
+      border-radius: 6px;
+      padding: 2px;
+      font-size: 0.85em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 45px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .due-date-calendar .month {
+      font-size: 0.7em;
+      text-transform: uppercase;
+      font-weight: bold;
+      background: #555555;
+      color: white;
+      width: 100%;
+      padding: 2px 0;
+      letter-spacing: 0.5px;
+    }
+
+    .due-date-calendar .day {
+      font-size: 1.2em;
+      font-weight: bold;
+      line-height: 1.4;
+      padding: 2px 0;
+      color: var(--text-color);
+    }
+
+    .list-item.overdue .due-date-calendar {
+      border-color: #ff4444;
+    }
+
+    .list-item.overdue .due-date-calendar .month {
+      background: #ff4444;
+    }
+
+    .list-item.overdue .due-date-calendar .day {
+      color: #ff4444;
+    }
+
+    .list-item.due-soon .due-date-calendar {
+      border-color: #ffd700;
+      background: #ffd700;
+    }
+
+    .list-item.due-soon .due-date-calendar .month {
+      background: #ffd700;
+      color: #000;
+    }
+
+    .list-item.due-soon .due-date-calendar .day {
+      color: #000;
+    }
+
+
+    .due-date-tag {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8em;
+      padding: 3px 6px;
+      border-radius: 0 5px 0 5px;
+      background: var(--header-bg);
+      border-left: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .due-date-tag .month {
+      font-weight: 700;
+      color: var(--text-color);
+      opacity: 0.7;
+    }
+
+    .due-date-tag .day {
+      font-weight: 700;
+      color: var(--text-color);
+    }
+
+    .list-item.overdue .due-date-tag {
+      background: rgba(255, 68, 68, 0.15);
+      border-color: #ff4444;
+    }
+
+    .list-item.overdue .due-date-tag .month,
+    .list-item.overdue .due-date-tag .day {
+      color: #ff4444;
+      opacity: 1;
+    }
+
+    .list-item.due-soon .due-date-tag {
+      background: rgba(255, 215, 0, 0.15);
+      border-color: #ffd700;
+    }
+
+    .list-item.due-soon .due-date-tag .month,
+    .list-item.due-soon .due-date-tag .day {
+      color: #cc9900;
+      opacity: 1;
+    }
+
+    [data-theme="dark"] .due-date-tag {
+      background: var(--item-bg);
+    }
+
+    [data-theme="dark"] .list-item.overdue .due-date-tag {
+      background: rgba(255, 68, 68, 0.2);
+    }
+
+    [data-theme="dark"] .list-item.due-soon .due-date-tag {
+      background: rgba(255, 215, 0, 0.2);
+    }
+
+    .list-item {
+      position: relative;
+    }
+
+    .list-item.overdue .due-date-tag {
+      background: rgba(255, 68, 68, 0.1);
+      border-color: #ff4444;
+    }
+
+    .list-item.due-soon .due-date-tag {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: #ffd700;
+    }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
   <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
@@ -3160,6 +3301,38 @@
         itemDiv.style.backgroundColor = item.backgroundColor;
       }
 
+      // Handle due date - Replace the existing due date code with this:
+      if (item.type === "todo" && item.dueDate) {
+        const now = new Date();
+        const dueDate = new Date(item.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = dueDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffTime < 0) {
+          itemDiv.classList.add("overdue");
+        } else if (diffDays <= 2) {
+          itemDiv.classList.add("due-soon");
+        }
+
+        // Create calendar tag
+        const calendarTag = document.createElement("span");
+        calendarTag.classList.add("due-date-tag");
+        
+        const month = dueDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+        const day = dueDate.getDate();
+        
+        calendarTag.innerHTML = `
+          <span class="month">${month}</span>
+          <span class="day">${day}</span>
+        `;
+        
+        // Change this line - append to itemDiv instead of itemContent
+        itemDiv.appendChild(calendarTag);
+      }
+
+      // Create hover menu
       const hoverMenu = document.createElement("div");
       hoverMenu.classList.add("item-hover-menu");
 
@@ -3170,8 +3343,7 @@
 
       const toggleTypeBtn = document.createElement("button");
       toggleTypeBtn.innerHTML = '<i class="fa-solid fa-shuffle"></i>';
-      toggleTypeBtn.title =
-        item.type === "todo" ? "Convert to Note" : "Convert to Todo";
+      toggleTypeBtn.title = item.type === "todo" ? "Convert to Note" : "Convert to Todo";
       toggleTypeBtn.addEventListener("click", () => {
         if (item.type === "todo") {
           item.type = "note";
@@ -3184,6 +3356,7 @@
         renderSingleProject(project);
       });
 
+      // Color picker
       const colorInput = document.createElement("input");
       colorInput.type = "text";
       colorInput.setAttribute("data-coloris", "");
@@ -3204,24 +3377,7 @@
         saveData();
       });
 
-      if (item.type === "todo" && item.dueDate) {
-        const now = new Date();
-        const dueDate = new Date(item.dueDate);
-        const diffTime = dueDate - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffTime < 0) {
-          itemDiv.classList.add("overdue");
-        } else if (diffDays <= 2) {
-          itemDiv.classList.add("due-soon");
-        }
-
-        const dueInfo = document.createElement("span");
-        dueInfo.classList.add("due-date-info");
-        dueInfo.textContent = formatDueDate(item.dueDate);
-        itemContent.appendChild(dueInfo);
-      }
-
+      // Timer controls for todo items
       if (item.type === "todo") {
         const timerControls = document.createElement("div");
         timerControls.classList.add("time-tracker");
@@ -3251,12 +3407,14 @@
         hoverMenu.appendChild(timerControls);
       }
 
+      // Delete button
       const deleteButton = createDeleteButton(() => {
         list.items = list.items.filter((i) => i.id !== item.id);
         saveData();
         renderSingleProject(project);
       });
 
+      // Append buttons to hover menu
       hoverMenu.appendChild(editorBtn);
       hoverMenu.appendChild(toggleTypeBtn);
       hoverMenu.appendChild(colorPickerBtn);
@@ -3265,9 +3423,8 @@
 
       itemDiv.appendChild(hoverMenu);
 
+      // Add checkbox for todo items
       if (item.type === "todo") {
-        itemDiv.classList.add("todo-item");
-
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = item.completed;
@@ -3286,13 +3443,9 @@
         });
 
         itemDiv.appendChild(checkbox);
-
-        itemContent.classList.add("item-name");
-        if (item.completed) {
-          itemContent.classList.add("strikethrough");
-        }
       }
 
+      // Set item content
       itemContent.innerHTML = formatTextWithLinks(
         stripHtml(item.content || item.name || "").substring(0, 100) +
         (stripHtml(item.content || item.name || "").length > 100 ? "..." : "")
@@ -3304,14 +3457,17 @@
       itemDiv.appendChild(itemContent);
       container.appendChild(itemDiv);
 
+      // Add drag and drop event listeners
+      setupDragAndDrop(itemDiv, item, list, container, project);
+    }
+
+    // Helper function to setup drag and drop
+    function setupDragAndDrop(itemDiv, item, list, container, project) {
       itemDiv.addEventListener("dragstart", (e) => {
         e.stopPropagation();
-
         e.dataTransfer.effectAllowed = "move";
-
         const isSubListItem = list.isSubList || false;
         const parentListId = list.parentListId || list.id;
-
         e.dataTransfer.setData(
           "text/plain",
           JSON.stringify({
@@ -3328,103 +3484,16 @@
 
       itemDiv.addEventListener("dragend", (e) => {
         e.stopPropagation();
-
         itemDiv.classList.remove("dragging");
-
         removePlaceholders();
         document.querySelectorAll(".shift-up, .shift-down").forEach((el) => {
           el.classList.remove("shift-up", "shift-down");
         });
       });
 
-      itemDiv.addEventListener("dragover", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const draggingItem = document.querySelector(".dragging");
-        if (!draggingItem || draggingItem === itemDiv) return;
-
-        removePlaceholders();
-
-        const rect = itemDiv.getBoundingClientRect();
-        const midY = rect.top + rect.height / 2;
-
-        if (e.clientY < midY) {
-          const placeholder = createPlaceholder();
-          itemDiv.before(placeholder);
-        } else {
-          const placeholder = createPlaceholder();
-          itemDiv.after(placeholder);
-        }
-      });
-
-      itemDiv.addEventListener("dragleave", (e) => {
-        e.stopPropagation();
-
-        itemDiv.classList.remove(
-          "drop-highlight-top",
-          "drop-highlight-bottom"
-        );
-      });
-
-      itemDiv.addEventListener("drop", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        try {
-          const { itemId, listId, isSubListItem, parentListId } = JSON.parse(
-            e.dataTransfer.getData("text/plain")
-          );
-
-          let sourceList;
-          let sourceItems;
-
-          if (isSubListItem) {
-            const parentList = appData
-              .flatMap((p) => p.lists)
-              .find((l) => l.id === parentListId);
-
-            if (parentList && parentList.subLists) {
-              sourceList = parentList.subLists.find((sl) => sl.id === listId);
-              if (sourceList) {
-                sourceItems = sourceList.items;
-              }
-            }
-          } else {
-            sourceList = appData
-              .flatMap((p) => p.lists)
-              .find((l) => l.id === listId);
-            if (sourceList) {
-              sourceItems = sourceList.items;
-            }
-          }
-
-          if (!sourceItems) return;
-          const draggedItem = sourceItems.find((i) => i.id === itemId);
-          if (!draggedItem) return;
-
-          sourceItems = sourceItems.filter((i) => i.id !== itemId);
-          if (isSubListItem) {
-            sourceList.items = sourceItems;
-          } else {
-            sourceList.items = sourceItems;
-          }
-
-          const placeholder = container.querySelector(".drop-placeholder");
-          if (placeholder) {
-            const items = Array.from(container.children);
-            const placeholderIndex = items.indexOf(placeholder);
-
-            list.items.splice(placeholderIndex, 0, draggedItem);
-          } else {
-            list.items.push(draggedItem);
-          }
-
-          saveData();
-          renderSingleProject(project);
-        } catch (err) {
-          console.error("Error during drag and drop:", err);
-        }
-      });
+      itemDiv.addEventListener("dragover", handleDragOver);
+      itemDiv.addEventListener("dragleave", handleDragLeave);
+      itemDiv.addEventListener("drop", (e) => handleDrop(e, list, container, project));
     }
 
     function formatDueDate(dueDate) {
@@ -4705,6 +4774,111 @@
       }
 
       setTimeout(nudgeBackup, 60 * 60 * 1000);
+    }
+
+    // Add this helper function
+    function formatCompactDate(date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      if (date.getTime() === today.getTime()) {
+        return 'Today';
+      } else if (date.getTime() === tomorrow.getTime()) {
+        return 'Tomorrow';
+      } else {
+        return date.toLocaleDateString('default', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      }
+    }
+
+    // Add these handler functions after setupDragAndDrop
+    function handleDragOver(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      const draggingItem = document.querySelector(".dragging");
+      if (!draggingItem || draggingItem === this) return;
+
+      removePlaceholders();
+
+      const rect = this.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+
+      if (e.clientY < midY) {
+        const placeholder = createPlaceholder();
+        this.before(placeholder);
+      } else {
+        const placeholder = createPlaceholder();
+        this.after(placeholder);
+      }
+    }
+
+    function handleDragLeave(e) {
+      e.stopPropagation();
+      this.classList.remove("drop-highlight-top", "drop-highlight-bottom");
+    }
+
+    function handleDrop(e, list, container, project) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      try {
+        const { itemId, listId, isSubListItem, parentListId } = JSON.parse(
+          e.dataTransfer.getData("text/plain")
+        );
+
+        let sourceList;
+        let sourceItems;
+
+        if (isSubListItem) {
+          const parentList = appData
+            .flatMap((p) => p.lists)
+            .find((l) => l.id === parentListId);
+
+          if (parentList && parentList.subLists) {
+            sourceList = parentList.subLists.find((sl) => sl.id === listId);
+            if (sourceList) {
+              sourceItems = sourceList.items;
+            }
+          }
+        } else {
+          sourceList = appData
+            .flatMap((p) => p.lists)
+            .find((l) => l.id === listId);
+          if (sourceList) {
+            sourceItems = sourceList.items;
+          }
+        }
+
+        if (!sourceItems) return;
+        const draggedItem = sourceItems.find((i) => i.id === itemId);
+        if (!draggedItem) return;
+
+        sourceItems = sourceItems.filter((i) => i.id !== itemId);
+        if (isSubListItem) {
+          sourceList.items = sourceItems;
+        } else {
+          sourceList.items = sourceItems;
+        }
+
+        const placeholder = container.querySelector(".drop-placeholder");
+        if (placeholder) {
+          const items = Array.from(container.children);
+          const placeholderIndex = items.indexOf(placeholder);
+
+          list.items.splice(placeholderIndex, 0, draggedItem);
+        } else {
+          list.items.push(draggedItem);
+        }
+
+        saveData();
+        renderSingleProject(project);
+      } catch (err) {
+        console.error("Error during drag and drop:", err);
+      }
     }
   </script>
 </body>
