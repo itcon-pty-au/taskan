@@ -68,13 +68,17 @@
       font-size: 16px;
       background-color: var(--bg-color);
       color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     .container {
       padding: 15px;
       display: flex;
       flex-direction: column;
-      min-height: 97vh;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .top-menu {
@@ -117,7 +121,9 @@
     .project-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .project-header .editable {
@@ -374,7 +380,7 @@
 
     .item-hover-menu {
       position: absolute;
-      top: -20px;
+      top: -30px;
       right: 10px;
       background-color: var(--card-bg);
       padding: 3px;
@@ -1477,7 +1483,6 @@
       color: var(--text-color);
       opacity: 0.7;
       font-size: 0.9em;
-      border-top: 1px solid var(--border-color);
     }
 
     .footer .heart {
@@ -2324,6 +2329,7 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       border: 1px solid var(--border-color);
       overflow: hidden;
+      transition: display 0.2s ease;
     }
 
     .due-date-calendar .month {
@@ -2359,7 +2365,6 @@
 
     .list-item.due-soon .due-date-calendar {
       border-color: #ffd700;
-      background: #ffd700;
     }
 
     .list-item.due-soon .due-date-calendar .month {
@@ -2386,7 +2391,37 @@
       border-left: 1px solid var(--border-color);
       border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
+      z-index: 2;
     }
+
+    .list-item.overdue .due-date-tag {
+      background: var(--header-bg);
+      border-color: #ff4444;
+      color: white;
+    }
+
+    .list-item.due-soon .due-date-tag {
+      background: var(--header-bg);
+      border-color: #ffd700;
+      color: white;
+    }
+
+    .list-item.overdue .due-date-tag .month,
+    .list-item.overdue .due-date-tag .day {
+      color: #ff4444;
+      opacity: 1;
+    }
+
+    .list-item.due-soon .due-date-tag .month,
+    .list-item.due-soon .due-date-tag .day {
+      color: #ffd700;
+      opacity: 1;
+    }
+
+    [data-theme="dark"] .due-date-tag {
+      background: var(--header-bg);
+    }
+
 
     .due-date-tag .month {
       font-weight: 700;
@@ -2399,52 +2434,101 @@
       color: var(--text-color);
     }
 
-    .list-item.overdue .due-date-tag {
-      background: rgba(255, 68, 68, 0.15);
-      border-color: #ff4444;
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 5px;
     }
 
-    .list-item.overdue .due-date-tag .month,
-    .list-item.overdue .due-date-tag .day {
-      color: #ff4444;
-      opacity: 1;
+    .project-tag {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      white-space: nowrap;
+      opacity: 0.9;
     }
 
-    .list-item.due-soon .due-date-tag {
-      background: rgba(255, 215, 0, 0.15);
-      border-color: #ffd700;
+    .tags-container {
+      margin: 15px 0;
     }
 
-    .list-item.due-soon .due-date-tag .month,
-    .list-item.due-soon .due-date-tag .day {
-      color: #cc9900;
-      opacity: 1;
+    .tags-input-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
 
-    [data-theme="dark"] .due-date-tag {
-      background: var(--item-bg);
+    .tags-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
     }
 
-    [data-theme="dark"] .list-item.overdue .due-date-tag {
-      background: rgba(255, 68, 68, 0.2);
+    .tag-color-picker {
+      padding: 8px !important;
+      width: 40px !important;
+      height: 40px !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 4px !important;
+      background-color: var(--card-bg) !important;
+      cursor: pointer !important;
     }
 
-    [data-theme="dark"] .list-item.due-soon .due-date-tag {
-      background: rgba(255, 215, 0, 0.2);
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .list-item {
-      position: relative;
+    .project-header-content {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+      min-width: 200px;
     }
 
-    .list-item.overdue .due-date-tag {
-      background: rgba(255, 68, 68, 0.1);
-      border-color: #ff4444;
+    /* Tags and color picker styles */
+    .color-preview {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      background-color: #f4a261;
+      display: inline-block;
     }
 
-    .list-item.due-soon .due-date-tag {
-      background: rgba(255, 215, 0, 0.1);
-      border-color: #ffd700;
+    .color-preview:hover {
+      transform: scale(1.1);
+    }
+
+    .tag-color-picker {
+      display: none !important;
+    }
+
+    /* Hide Coloris default button */
+    .coloris-wrapper {
+      display: none !important;
+    }
+
+    .clr-field {
+      display: none !important;
+    }
+
+    .clr-picker {
+      z-index: 2000 !important;
+    }
+
+    .list-item:hover .due-date-tag {
+      display: none;
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
@@ -2546,6 +2630,15 @@
     </div>
     <div>
       <input type="text" id="projectName" placeholder="Enter project name" />
+    </div>
+
+    <div class="tags-container">
+      <h3>Tags</h3>
+      <div class="tags-input-container">
+        <input type="text" class="tags-input" placeholder="Enter tags (comma separated)" />
+        <div class="color-preview" title="Choose tag color" style="background-color: #f4a261;"></div>
+        <input type="text" class="tag-color-picker" data-coloris value="#f4a261" style="display: none;" />
+      </div>
     </div>
 
     <div class="milestones-container">
@@ -2699,10 +2792,34 @@
       const header = document.createElement("div");
       header.className = "project-header";
 
+      const headerContent = document.createElement("div");
+      headerContent.className = "project-header-content";
+
       const projectName = createEditableElement("div", project.name, (newName) => {
         project.name = newName;
         saveData();
       });
+
+      headerContent.appendChild(projectName);
+
+      // Add tags if they exist
+      if (project.tags && project.tags.length > 0) {
+        const tagsContainer = document.createElement("div");
+        tagsContainer.className = "project-tags";
+        
+        project.tags.forEach(tag => {
+          const tagElement = document.createElement("span");
+          tagElement.className = "project-tag";
+          tagElement.textContent = tag;
+          tagElement.style.backgroundColor = project.tagColor || "#555555";
+          tagElement.style.color = getContrastColor(project.tagColor || "#555555");
+          tagsContainer.appendChild(tagElement);
+        });
+        
+        headerContent.appendChild(tagsContainer);
+      }
+
+      header.appendChild(headerContent);
 
       const buttonContainer = document.createElement("div");
       buttonContainer.style.display = "flex";
@@ -2785,7 +2902,7 @@
       buttonContainer.appendChild(moveDownBtn);
       buttonContainer.appendChild(deleteButton);
 
-      header.appendChild(projectName);
+      header.appendChild(headerContent);
       header.appendChild(buttonContainer);
       projectElement.appendChild(header);
 
@@ -3287,6 +3404,7 @@
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("list-item");
       itemDiv.setAttribute("draggable", "true");
+      itemDiv.setAttribute("data-item-id", item.id); // Add this line
 
       const itemContent = document.createElement("div");
       if (item.type === "todo") {
@@ -3303,11 +3421,13 @@
 
       // Handle due date - Replace the existing due date code with this:
       if (item.type === "todo" && item.dueDate) {
-        const now = new Date();
         const dueDate = new Date(item.dueDate);
-        dueDate.setHours(0, 0, 0, 0);
+        // Convert to local date without time component
+        const localDueDate = new Date(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
         
-        const diffTime = dueDate - now;
+        const diffTime = localDueDate - now;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffTime < 0) {
@@ -3320,8 +3440,8 @@
         const calendarTag = document.createElement("span");
         calendarTag.classList.add("due-date-tag");
         
-        const month = dueDate.toLocaleString('default', { month: 'short' }).toUpperCase();
-        const day = dueDate.getDate();
+        const month = localDueDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+        const day = localDueDate.getDate();
         
         calendarTag.innerHTML = `
           <span class="month">${month}</span>
@@ -3367,7 +3487,6 @@
       colorPickerBtn.title = "Change Color";
       colorPickerBtn.addEventListener("click", () => {
         colorInput.click();
-        Coloris.open(colorInput);
       });
 
       colorInput.addEventListener("change", (event) => {
@@ -3554,12 +3673,7 @@
       });
     }
 
-    addProjectBtn.addEventListener("click", () => {
-      const newProject = { id: Date.now(), name: "", lists: [] };
-      appData.unshift(newProject);
-      saveData();
-      renderProjects();
-    });
+    addProjectBtn.addEventListener("click", () => showProjectForm(null));
 
     importDataBtn.addEventListener("click", () => {
       const input = document.createElement("input");
@@ -3708,27 +3822,60 @@
           onInit: function () {
             if (!item.isNew) {
               $('#summernote').summernote('code', item.content || item.name || '');
+            } else {
+              // For new items, set empty content and position cursor at start
+              $('#summernote').summernote('code', '');
+            }
+
+            // Add this block to handle due date for new items
+            if (item.isNew && item.type === "todo" && dueDateInput.value) {
+              const date = new Date(dueDateInput.value + 'T00:00:00');
+              item.dueDate = date.toISOString();
+              updateDueDateInfo(item.dueDate);
             }
 
             setTimeout(() => {
               $('#summernote').summernote('focus');
               $('.note-editable').focus();
+              
+              // Position cursor at the start
+              const editableDiv = $('.note-editable')[0];
               const range = document.createRange();
               const sel = window.getSelection();
-              const editableDiv = $('.note-editable')[0];
-              range.selectNodeContents(editableDiv);
-              range.collapse(false);
+              
+              // Set cursor at the beginning
+              range.setStart(editableDiv, 0);
+              range.collapse(true);
               sel.removeAllRanges();
               sel.addRange(range);
+              
               $('.note-editor').css('display', 'flex');
               $('.note-editing-area').css('display', 'flex');
               $('#summernote').css('display', 'flex');
             }, 100);
           },
           onChange: function (contents) {
-            if (!item.isNew) {
-              item.content = contents;
+            // Update content immediately
+            item.content = contents;
+            
+            // Find the project and update UI
+            const project = appData.find(p =>
+              p.lists.some(l =>
+                l.items.some(i => i.id === item.id) ||
+                (l.subLists && l.subLists.some(sl => sl.items.some(i => i.id === item.id)))
+              )
+            );
+            
+            if (project) {
               saveData();
+              // Update only the item content in UI
+              const itemElement = document.querySelector(`[data-item-id="${item.id}"] .item-name`);
+              if (itemElement) {
+                itemElement.innerHTML = formatTextWithLinks(
+                  stripHtml(contents).substring(0, 100) +
+                  (stripHtml(contents).length > 100 ? "..." : "")
+                );
+              }
             }
           }
         },
@@ -3744,8 +3891,9 @@
 
       dueDateInput.addEventListener("change", function () {
         if (this.value) {
-          const date = new Date(this.value);
-          date.setHours(0, 0, 0, 0);
+          // Create date in UTC to preserve the selected date
+          const selectedDate = this.value + 'T00:00:00Z';
+          const date = new Date(selectedDate);
           item.dueDate = date.toISOString();
           updateDueDateInfo(item.dueDate);
 
@@ -3794,6 +3942,11 @@
             content: content,
             completed: item.type === "todo" ? false : undefined,
           };
+
+          // Add this: Copy due date from the original item if it exists
+          if (item.dueDate) {
+            newItem.dueDate = item.dueDate;
+          }
 
           if (item.list) {
             item.list.items.push(newItem);
@@ -4032,7 +4185,33 @@
       const overlay = document.querySelector(".form-overlay");
       const milestoneEntries = document.getElementById("milestoneEntries");
       const projectNameInput = document.getElementById("projectName");
+      const tagsInput = form.querySelector(".tags-input");
+      const tagColorPicker = form.querySelector(".tag-color-picker");
+      const colorPreview = form.querySelector(".color-preview");
       const submitBtn = document.querySelector(".submit-btn");
+
+      // Remove any existing event listeners
+      const newColorPreview = colorPreview.cloneNode(true);
+      colorPreview.parentNode.replaceChild(newColorPreview, colorPreview);
+      
+      // Setup new event listeners
+      newColorPreview.addEventListener("click", () => {
+        const rect = newColorPreview.getBoundingClientRect();
+        const picker = document.querySelector('.clr-picker');
+        if (picker) {
+          requestAnimationFrame(() => {
+            picker.style.position = 'fixed';
+            picker.style.left = `${rect.left}px`;
+            picker.style.top = `${rect.bottom + 5}px`;
+            picker.style.margin = '0';
+          });
+        }
+        tagColorPicker.click();
+      });
+      
+      tagColorPicker.addEventListener("change", (e) => {
+        newColorPreview.style.backgroundColor = e.target.value;
+      });
 
       form.querySelector("h2").textContent = projectToEdit
         ? "Edit Project"
@@ -4040,10 +4219,20 @@
       submitBtn.title = projectToEdit ? "Save Changes" : "Create Project";
 
       projectNameInput.value = "";
+      tagsInput.value = "";
+      const defaultColor = "#f4a261";
+      tagColorPicker.value = defaultColor;
+      colorPreview.style.backgroundColor = defaultColor;
       milestoneEntries.innerHTML = "";
 
       if (projectToEdit) {
         projectNameInput.value = projectToEdit.name;
+        if (projectToEdit.tags) {
+          tagsInput.value = projectToEdit.tags.join(", ");
+          const projectColor = projectToEdit.tagColor || defaultColor;
+          tagColorPicker.value = projectColor;
+          colorPreview.style.backgroundColor = projectColor;
+        }
 
         if (projectToEdit.milestones) {
           projectToEdit.milestones.forEach((milestone) => {
@@ -4078,6 +4267,12 @@
         const projectName = projectNameInput.value.trim();
         if (!projectName) return;
 
+        const tags = tagsInput.value
+          .split(",")
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0);
+        const tagColor = tagColorPicker.value;
+
         const milestones = Array.from(
           document.querySelectorAll(".milestone-entry")
         )
@@ -4089,12 +4284,16 @@
 
         if (projectToEdit) {
           projectToEdit.name = projectName;
+          projectToEdit.tags = tags.length > 0 ? tags : undefined;
+          projectToEdit.tagColor = tagColor;
           projectToEdit.milestones =
             milestones.length > 0 ? milestones : undefined;
         } else {
           const newProject = {
             id: Date.now(),
             name: projectName,
+            tags: tags.length > 0 ? tags : undefined,
+            tagColor: tagColor,
             lists: [],
             milestones: milestones.length > 0 ? milestones : undefined,
           };
@@ -4245,9 +4444,6 @@
 
       return timelineContainer;
     }
-
-    addProjectBtn.removeEventListener("click", addProjectBtn.onclick);
-    addProjectBtn.addEventListener("click", () => showProjectForm(null));
 
     document
       .querySelector(".add-milestone-btn")
@@ -4754,6 +4950,63 @@
           ? '<i class="fas fa-sun"></i>' 
           : '<i class="fas fa-moon"></i>';
       });
+
+      // Initialize Coloris with base options
+      Coloris({
+        themeMode: currentTheme,
+        alpha: false,
+        formatToggle: false,
+        clearButton: false,
+        defaultColor: '#f4a261',
+        format: 'hex',
+        focusInput: false,
+        parent: 'body',
+        swatches: [
+          '#f4a261',
+          '#2a9d8f',
+          '#e76f51',
+          '#e9c46a',
+          '#264653',
+          '#ef476f',
+          '#ffd166',
+          '#06d6a0',
+          '#118ab2',
+          '#073b4c',
+        ]
+      });
+
+      // Initialize color pickers
+      Coloris.setInstance('[data-coloris]', {
+        theme: 'default',
+        themeMode: currentTheme,
+        position: 'bottom-start',
+        margin: 2,
+      });
+
+      // Add event listener for when color picker opens
+      document.addEventListener('coloris:show', event => {
+        const preview = document.querySelector('.color-preview');
+        if (preview) {
+          const rect = preview.getBoundingClientRect();
+          const picker = document.querySelector('.clr-picker');
+          if (picker) {
+            requestAnimationFrame(() => {
+              picker.style.position = 'fixed';
+              picker.style.left = `${rect.left}px`;
+              picker.style.top = `${rect.bottom + 5}px`;
+              picker.style.margin = '0';
+            });
+          }
+        }
+      });
+
+      // Add event listener for color changes
+      document.addEventListener('coloris:change', event => {
+        const preview = document.querySelector('.color-preview');
+        if (preview) {
+          preview.style.backgroundColor = event.detail.color;
+        }
+      });
     });
 
     function updateBackupStatus(now) {
@@ -4879,6 +5132,23 @@
       } catch (err) {
         console.error("Error during drag and drop:", err);
       }
+    }
+
+    // Helper function to determine text color based on background
+    function getContrastColor(hexcolor) {
+      // Remove the # if present
+      hexcolor = hexcolor.replace("#", "");
+      
+      // Convert to RGB
+      const r = parseInt(hexcolor.substr(0, 2), 16);
+      const g = parseInt(hexcolor.substr(2, 2), 16);
+      const b = parseInt(hexcolor.substr(4, 2), 16);
+      
+      // Calculate luminance
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      
+      // Return black or white based on luminance
+      return luminance > 0.5 ? "#000000" : "#ffffff";
     }
   </script>
 </body>
