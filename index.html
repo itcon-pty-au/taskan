@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Tracker</title>
+  <title>TasKan - Offline first task tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css" />
@@ -479,9 +479,7 @@
       align-items: center;
       justify-content: center;
       width: 28px;
-      /* Reduced from 32px */
       height: 28px;
-      /* Reduced from 32px */
       margin-left: 5px;
       transition: width 0.2s ease;
     }
@@ -489,16 +487,13 @@
     .project-header button i,
     .list-header button i {
       font-size: 12px;
-      /* Reduced from 14px */
     }
 
     .project-header button.delete-confirm,
     .list-header button.delete-confirm {
       width: auto;
       padding: 5px 8px;
-      /* Reduced horizontal padding */
       font-size: 12px;
-      /* Added to match icon size */
     }
 
     .project-header button:hover,
@@ -817,16 +812,13 @@
       align-items: center;
       justify-content: center;
       width: 28px;
-      /* Reduced from 32px */
       height: 28px;
-      /* Reduced from 32px */
       margin-left: 5px;
       transition: width 0.2s ease;
     }
 
     .sub-list-header button i {
       font-size: 12px;
-      /* Reduced from 14px */
     }
 
     .sub-list-header button:hover {
@@ -840,9 +832,7 @@
     .sub-list-header button.delete-confirm {
       width: auto;
       padding: 5px 8px;
-      /* Reduced horizontal padding */
       font-size: 12px;
-      /* Added to match icon size */
     }
 
     .sub-list-items {
@@ -2311,7 +2301,6 @@
       font-size: 14px;
     }
 
-    /* Add these styles in the existing <style> section */
     .due-date-calendar {
       position: absolute;
       right: 10px;
@@ -2386,36 +2375,30 @@
       gap: 4px;
       font-size: 0.8em;
       padding: 3px 6px;
-      border-radius: 0 5px 0 5px;
+      border-radius: 0 0 0 5px;
       background: var(--header-bg);
-      border-left: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
       z-index: 2;
     }
 
     .list-item.overdue .due-date-tag {
       background: var(--header-bg);
-      border-color: #ff4444;
-      color: white;
+      border-color: var(--border-color);
     }
 
     .list-item.due-soon .due-date-tag {
       background: var(--header-bg);
-      border-color: #ffd700;
-      color: white;
+      border-color: var(--border-color);
     }
 
     .list-item.overdue .due-date-tag .month,
     .list-item.overdue .due-date-tag .day {
       color: #ff4444;
-      opacity: 1;
     }
 
     .list-item.due-soon .due-date-tag .month,
     .list-item.due-soon .due-date-tag .day {
       color: #ffd700;
-      opacity: 1;
     }
 
     [data-theme="dark"] .due-date-tag {
@@ -2494,7 +2477,6 @@
       min-width: 200px;
     }
 
-    /* Tags and color picker styles */
     .color-preview {
       width: 24px;
       height: 24px;
@@ -2514,7 +2496,6 @@
       display: none !important;
     }
 
-    /* Hide Coloris default button */
     .coloris-wrapper {
       display: none !important;
     }
@@ -2530,6 +2511,97 @@
     .list-item:hover .due-date-tag {
       display: none;
     }
+
+    .list-item.due-soon::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      width: 12px;
+      height: 12px;
+      background-color: #ffd700;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+      z-index: 2;
+    }
+
+    .list-item.overdue::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      width: 12px;
+      height: 12px;
+      background-color: #ff4444;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+      z-index: 2;
+    }
+
+    .introjs-tooltip {
+      background-color: var(--card-bg) !important;
+      color: var(--text-color) !important;
+      border: 1px solid var(--border-color) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .introjs-tooltiptext, 
+    .introjs-tooltip-title, 
+    .introjs-skipbutton {
+      color: var(--text-color) !important;
+    }
+
+    .introjs-button {
+      color: white !important;
+      background-color: #555555 !important;
+      border: none !important;
+      text-shadow: none !important;
+      border-radius: 4px !important;
+    }
+
+    .introjs-button:hover {
+      background-color: #000000 !important;
+      color: white !important;
+    }
+
+    [data-theme="dark"] .introjs-button:hover {
+      background-color: #666666 !important;
+    }
+
+    .introjs-helperLayer {
+      background-color: transparent !important;
+      border: 1px solid var(--border-color) !important;
+    }
+
+    .introjs-overlay {
+      background-color: rgba(0, 0, 0, 0.5) !important;
+    }
+
+    [data-theme="dark"] .introjs-overlay {
+      background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+
+    .introjs-arrow.top-right,
+    .introjs-arrow.top-middle,
+    .introjs-arrow.top {
+      border-bottom-color: var(--card-bg) !important;
+    }
+
+    .introjs-arrow.right,
+    .introjs-arrow.right-middle {
+      border-left-color: var(--card-bg) !important;
+    }
+
+    .introjs-arrow.bottom,
+    .introjs-arrow.bottom-middle,
+    .introjs-arrow.bottom-right {
+      border-top-color: var(--card-bg) !important;
+    }
+
+    .introjs-arrow.left,
+    .introjs-arrow.left-middle {
+      border-right-color: var(--card-bg) !important;
+    }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
   <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
@@ -2539,7 +2611,7 @@
   <div class="container">
     <div class="top-menu">
       <div class="logo">
-        <h1>Taskan</h1>
+        <h1>TasKan</h1>
         <span class="tagline">Organize. Track. Achieve.</span>
       </div>
       <div class="top-menu-buttons">
@@ -2802,7 +2874,6 @@
 
       headerContent.appendChild(projectName);
 
-      // Add tags if they exist
       if (project.tags && project.tags.length > 0) {
         const tagsContainer = document.createElement("div");
         tagsContainer.className = "project-tags";
@@ -2894,7 +2965,6 @@
         }
       });
 
-      // Append buttons in the specified order
       buttonContainer.appendChild(editButton);
       buttonContainer.appendChild(addListButton);
       buttonContainer.appendChild(collapseBtn);
@@ -2921,7 +2991,6 @@
         projectElement.insertBefore(timelineContainer, listsContainer);
       }
 
-      // Add this line back to append to projectsContainer if no container is provided
       if (!projectElement.parentNode) {
         projectsContainer.appendChild(projectElement);
       }
@@ -3404,7 +3473,7 @@
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("list-item");
       itemDiv.setAttribute("draggable", "true");
-      itemDiv.setAttribute("data-item-id", item.id); // Add this line
+      itemDiv.setAttribute("data-item-id", item.id);
 
       const itemContent = document.createElement("div");
       if (item.type === "todo") {
@@ -3419,10 +3488,8 @@
         itemDiv.style.backgroundColor = item.backgroundColor;
       }
 
-      // Handle due date - Replace the existing due date code with this:
       if (item.type === "todo" && item.dueDate) {
         const dueDate = new Date(item.dueDate);
-        // Convert to local date without time component
         const localDueDate = new Date(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
         const now = new Date();
         now.setHours(0, 0, 0, 0);
@@ -3436,7 +3503,6 @@
           itemDiv.classList.add("due-soon");
         }
 
-        // Create calendar tag
         const calendarTag = document.createElement("span");
         calendarTag.classList.add("due-date-tag");
         
@@ -3448,11 +3514,9 @@
           <span class="day">${day}</span>
         `;
         
-        // Change this line - append to itemDiv instead of itemContent
         itemDiv.appendChild(calendarTag);
       }
 
-      // Create hover menu
       const hoverMenu = document.createElement("div");
       hoverMenu.classList.add("item-hover-menu");
 
@@ -3476,7 +3540,6 @@
         renderSingleProject(project);
       });
 
-      // Color picker
       const colorInput = document.createElement("input");
       colorInput.type = "text";
       colorInput.setAttribute("data-coloris", "");
@@ -3496,7 +3559,6 @@
         saveData();
       });
 
-      // Timer controls for todo items
       if (item.type === "todo") {
         const timerControls = document.createElement("div");
         timerControls.classList.add("time-tracker");
@@ -3526,14 +3588,12 @@
         hoverMenu.appendChild(timerControls);
       }
 
-      // Delete button
       const deleteButton = createDeleteButton(() => {
         list.items = list.items.filter((i) => i.id !== item.id);
         saveData();
         renderSingleProject(project);
       });
 
-      // Append buttons to hover menu
       hoverMenu.appendChild(editorBtn);
       hoverMenu.appendChild(toggleTypeBtn);
       hoverMenu.appendChild(colorPickerBtn);
@@ -3542,7 +3602,6 @@
 
       itemDiv.appendChild(hoverMenu);
 
-      // Add checkbox for todo items
       if (item.type === "todo") {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -3564,7 +3623,6 @@
         itemDiv.appendChild(checkbox);
       }
 
-      // Set item content
       itemContent.innerHTML = formatTextWithLinks(
         stripHtml(item.content || item.name || "").substring(0, 100) +
         (stripHtml(item.content || item.name || "").length > 100 ? "..." : "")
@@ -3576,11 +3634,9 @@
       itemDiv.appendChild(itemContent);
       container.appendChild(itemDiv);
 
-      // Add drag and drop event listeners
       setupDragAndDrop(itemDiv, item, list, container, project);
     }
 
-    // Helper function to setup drag and drop
     function setupDragAndDrop(itemDiv, item, list, container, project) {
       itemDiv.addEventListener("dragstart", (e) => {
         e.stopPropagation();
@@ -3692,43 +3748,34 @@
                 saveData();
                 renderProjects();
 
-                // Store original icon HTML
                 const originalContent = importDataBtn.innerHTML;
 
-                // Show success message (tick and text)
                 importDataBtn.innerHTML = "✓ Imported";
                 importDataBtn.style.backgroundColor = "#28a745";
 
-                // Reset after 2 seconds
                 setTimeout(() => {
                   importDataBtn.innerHTML = '<i class="fa-solid fa-file-import"></i>';
                   importDataBtn.style.backgroundColor = "";
                 }, 2000);
               } else {
-                // Store original icon HTML
                 const originalContent = importDataBtn.innerHTML;
 
-                // Show error message
                 importDataBtn.innerHTML = "⚠ Invalid Format";
                 importDataBtn.style.backgroundColor = "#dc3545";
 
-                // Reset after 2 seconds
                 setTimeout(() => {
-                  importDataBtn.innerHTML = originalContent; // Restore the icon
+                  importDataBtn.innerHTML = originalContent;
                   importDataBtn.style.backgroundColor = "";
                 }, 2000);
               }
             } catch (error) {
-              // Store original icon HTML
               const originalContent = importDataBtn.innerHTML;
 
-              // Show error message
               importDataBtn.innerHTML = "⚠ Invalid File";
               importDataBtn.style.backgroundColor = "#dc3545";
 
-              // Reset after 2 seconds
               setTimeout(() => {
-                importDataBtn.innerHTML = originalContent; // Restore the icon
+                importDataBtn.innerHTML = originalContent;
                 importDataBtn.style.backgroundColor = "";
               }, 2000);
             }
@@ -3745,7 +3792,6 @@
       localStorage.setItem("theme", theme);
       currentTheme = theme;
 
-      // Only update button if it exists
       const themeToggleBtnInMenu = document.getElementById('themeToggleBtn');
       if (themeToggleBtnInMenu) {
         themeToggleBtnInMenu.innerHTML = theme === "dark"
@@ -3823,11 +3869,9 @@
             if (!item.isNew) {
               $('#summernote').summernote('code', item.content || item.name || '');
             } else {
-              // For new items, set empty content and position cursor at start
               $('#summernote').summernote('code', '');
             }
 
-            // Add this block to handle due date for new items
             if (item.isNew && item.type === "todo" && dueDateInput.value) {
               const date = new Date(dueDateInput.value + 'T00:00:00');
               item.dueDate = date.toISOString();
@@ -3838,12 +3882,10 @@
               $('#summernote').summernote('focus');
               $('.note-editable').focus();
               
-              // Position cursor at the start
               const editableDiv = $('.note-editable')[0];
               const range = document.createRange();
               const sel = window.getSelection();
               
-              // Set cursor at the beginning
               range.setStart(editableDiv, 0);
               range.collapse(true);
               sel.removeAllRanges();
@@ -3855,10 +3897,8 @@
             }, 100);
           },
           onChange: function (contents) {
-            // Update content immediately
             item.content = contents;
             
-            // Find the project and update UI
             const project = appData.find(p =>
               p.lists.some(l =>
                 l.items.some(i => i.id === item.id) ||
@@ -3868,7 +3908,6 @@
             
             if (project) {
               saveData();
-              // Update only the item content in UI
               const itemElement = document.querySelector(`[data-item-id="${item.id}"] .item-name`);
               if (itemElement) {
                 itemElement.innerHTML = formatTextWithLinks(
@@ -3891,7 +3930,6 @@
 
       dueDateInput.addEventListener("change", function () {
         if (this.value) {
-          // Create date in UTC to preserve the selected date
           const selectedDate = this.value + 'T00:00:00Z';
           const date = new Date(selectedDate);
           item.dueDate = date.toISOString();
@@ -3943,7 +3981,6 @@
             completed: item.type === "todo" ? false : undefined,
           };
 
-          // Add this: Copy due date from the original item if it exists
           if (item.dueDate) {
             newItem.dueDate = item.dueDate;
           }
@@ -4190,11 +4227,9 @@
       const colorPreview = form.querySelector(".color-preview");
       const submitBtn = document.querySelector(".submit-btn");
 
-      // Remove any existing event listeners
       const newColorPreview = colorPreview.cloneNode(true);
       colorPreview.parentNode.replaceChild(newColorPreview, colorPreview);
       
-      // Setup new event listeners
       newColorPreview.addEventListener("click", () => {
         const rect = newColorPreview.getBoundingClientRect();
         const picker = document.querySelector('.clr-picker');
@@ -4468,11 +4503,9 @@
 
         const filename = `kanban-backup-${timestamp}.json`;
 
-        // Store original icon HTML
         const autoBackupBtn = document.getElementById("autoBackupBtn");
 
         try {
-          // Show file save dialog
           const fileHandle = await window.showSaveFilePicker({
             suggestedName: filename,
             types: [{
@@ -4481,20 +4514,15 @@
             }],
           });
 
-          // Create a FileSystemWritableFileStream to write to
           const writable = await fileHandle.createWritable();
-          // Write the contents
           await writable.write(data);
           await writable.close();
 
-          // Show success message
           autoBackupBtn.innerHTML = "✓ Exported";
           autoBackupBtn.style.backgroundColor = "#28a745";
 
-          // Update last backup time and UI
           updateBackupStatus(now);
 
-          // Reset after 2 seconds
           setTimeout(() => {
             autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
             autoBackupBtn.style.backgroundColor = "";
@@ -4503,7 +4531,6 @@
         } catch (err) {
           if (err.name !== 'AbortError') {
             try {
-              // Fall back to regular download if the picker fails
               const blob = new Blob([data], { type: 'application/json' });
               const url = window.URL.createObjectURL(blob);
               const a = document.createElement('a');
@@ -4514,32 +4541,26 @@
               window.URL.revokeObjectURL(url);
               document.body.removeChild(a);
               
-              // Show success message
               autoBackupBtn.innerHTML = "✓ Exported";
               autoBackupBtn.style.backgroundColor = "#28a745";
               
-              // Update last backup time and UI
               updateBackupStatus(now);
 
-              // Reset after 2 seconds
               setTimeout(() => {
                 autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
                 autoBackupBtn.style.backgroundColor = "";
               }, 2000);
 
             } catch (downloadErr) {
-              // Show error message
               autoBackupBtn.innerHTML = "⚠ Invalid File";
               autoBackupBtn.style.backgroundColor = "#dc3545";
               
-              // Reset after 2 seconds
               setTimeout(() => {
                 autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
                 autoBackupBtn.style.backgroundColor = "";
               }, 2000);
             }
           } else {
-            // User cancelled, restore original icon
             autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
             autoBackupBtn.style.backgroundColor = "";
             return;
@@ -4547,12 +4568,10 @@
         }
       } catch (err) {
         console.error('Error during backup:', err);
-        // Show error message
         const autoBackupBtn = document.getElementById("autoBackupBtn");
         autoBackupBtn.innerHTML = "⚠ Invalid File";
         autoBackupBtn.style.backgroundColor = "#dc3545";
         
-        // Reset after 2 seconds
         setTimeout(() => {
           autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
           autoBackupBtn.style.backgroundColor = "";
@@ -4913,31 +4932,26 @@
           localStorage.setItem('tutorialShown', 'true');
         });
 
-        // Add a flag to track skip button clicks
         let skipButtonClicked = false;
 
-        // Add click handler for skip button
         document.addEventListener('click', function (e) {
           if (e.target.classList.contains('introjs-skipbutton')) {
             skipButtonClicked = true;
           }
         }, true);
 
-        // Update the onexit handler
         intro.onexit(function () {
           if (skipButtonClicked) {
             localStorage.setItem('tutorialShown', 'true');
           }
-          skipButtonClicked = false; // Reset the flag
+          skipButtonClicked = false;
         });
       }, 1000);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-      // Set initial theme
       setTheme(currentTheme);
 
-      // Theme toggle button
       const themeToggleBtn = document.getElementById('themeToggleBtn');
       themeToggleBtn.innerHTML = currentTheme === "dark" 
         ? '<i class="fas fa-sun"></i>' 
@@ -4951,7 +4965,6 @@
           : '<i class="fas fa-moon"></i>';
       });
 
-      // Initialize Coloris with base options
       Coloris({
         themeMode: currentTheme,
         alpha: false,
@@ -4975,7 +4988,6 @@
         ]
       });
 
-      // Initialize color pickers
       Coloris.setInstance('[data-coloris]', {
         theme: 'default',
         themeMode: currentTheme,
@@ -4983,7 +4995,6 @@
         margin: 2,
       });
 
-      // Add event listener for when color picker opens
       document.addEventListener('coloris:show', event => {
         const preview = document.querySelector('.color-preview');
         if (preview) {
@@ -5000,7 +5011,6 @@
         }
       });
 
-      // Add event listener for color changes
       document.addEventListener('coloris:change', event => {
         const preview = document.querySelector('.color-preview');
         if (preview) {
@@ -5029,7 +5039,6 @@
       setTimeout(nudgeBackup, 60 * 60 * 1000);
     }
 
-    // Add this helper function
     function formatCompactDate(date) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -5048,7 +5057,6 @@
       }
     }
 
-    // Add these handler functions after setupDragAndDrop
     function handleDragOver(e) {
       e.stopPropagation();
       e.preventDefault();
@@ -5134,20 +5142,15 @@
       }
     }
 
-    // Helper function to determine text color based on background
     function getContrastColor(hexcolor) {
-      // Remove the # if present
       hexcolor = hexcolor.replace("#", "");
       
-      // Convert to RGB
       const r = parseInt(hexcolor.substr(0, 2), 16);
       const g = parseInt(hexcolor.substr(2, 2), 16);
       const b = parseInt(hexcolor.substr(4, 2), 16);
       
-      // Calculate luminance
       const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
       
-      // Return black or white based on luminance
       return luminance > 0.5 ? "#000000" : "#ffffff";
     }
   </script>
