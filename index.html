@@ -4,12 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TasKan - Offline first task tracker</title>
+  
+  <!-- Add this script before any styles -->
+  <script>
+    // Immediately set theme on page load
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
   <!-- Main Stylesheet-->
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="preload" href="fonts/Rainis-Normal.woff" as="font" type="font/woff" crossorigin>
-  <script>
-    const { Timeline, DataSet } = vis;
-  </script>
 </head>
 
 <body>
@@ -22,6 +26,9 @@
       <div class="top-menu-buttons">
         <button id="addProjectBtn" title="Create New Project">
           New Project
+        </button>
+        <button id="searchBtn" title="Search (Ctrl/Cmd + K)">
+          <i class="fas fa-search"></i>
         </button>
         <button id="importDataBtn" title="Import Data"><i class="fa-solid fa-file-import"></i></button>
         <button id="autoBackupBtn" title="Setup Auto-backup"><i class="fa-solid fa-file-export"></i></button>
@@ -126,6 +133,37 @@
         </button>
       </h3>
       <div id="milestoneEntries"></div>
+    </div>
+  </div>
+
+  <div class="search-overlay" style="display: none"></div>
+  <div class="search-modal" style="display: none">
+    <div class="search-header">
+      <div class="search-input-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" class="search-input" placeholder="Search projects, lists and tasks... (Esc to close)">
+        <kbd class="shortcut-hint">Ctrl/⌘ K</kbd>
+      </div>
+    </div>
+    <div class="search-results">
+      <div class="no-results" style="display: none">
+        <i class="fas fa-search"></i>
+        <p>No results found</p>
+      </div>
+      <div class="results-container">
+        <div class="results-group projects-group">
+          <h3>Projects</h3>
+          <div class="results-list"></div>
+        </div>
+        <div class="results-group lists-group">
+          <h3>Lists</h3>
+          <div class="results-list"></div>
+        </div>
+        <div class="results-group tasks-group">
+          <h3>Tasks</h3>
+          <div class="results-list"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1894,7 +1932,7 @@
       document.querySelector(".form-overlay").style.display = "none";
     });
 
-    async function setupAutoBackup() {
+    function setupAutoBackup() {
       try {
         const data = JSON.stringify(appData, null, 2);
         const now = new Date();
@@ -1907,70 +1945,28 @@
           String(now.getSeconds()).padStart(2, "0");
 
         const filename = `kanban-backup-${timestamp}.json`;
-
         const autoBackupBtn = document.getElementById("autoBackupBtn");
 
-        try {
-          const fileHandle = await window.showSaveFilePicker({
-            suggestedName: filename,
-            types: [{
-              description: 'JSON File',
-              accept: { 'application/json': ['.json'] },
-            }],
-          });
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
 
-          const writable = await fileHandle.createWritable();
-          await writable.write(data);
-          await writable.close();
+        autoBackupBtn.innerHTML = "✓ Exported";
+        autoBackupBtn.style.backgroundColor = "#28a745";
 
-          autoBackupBtn.innerHTML = "✓ Exported";
-          autoBackupBtn.style.backgroundColor = "#28a745";
+        updateBackupStatus(now);
 
-          updateBackupStatus(now);
+        setTimeout(() => {
+          autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+          autoBackupBtn.style.backgroundColor = "";
+        }, 2000);
 
-          setTimeout(() => {
-            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
-            autoBackupBtn.style.backgroundColor = "";
-          }, 2000);
-
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            try {
-              const blob = new Blob([data], { type: 'application/json' });
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              window.URL.revokeObjectURL(url);
-              document.body.removeChild(a);
-
-              autoBackupBtn.innerHTML = "✓ Exported";
-              autoBackupBtn.style.backgroundColor = "#28a745";
-
-              updateBackupStatus(now);
-
-              setTimeout(() => {
-                autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
-                autoBackupBtn.style.backgroundColor = "";
-              }, 2000);
-
-            } catch (downloadErr) {
-              autoBackupBtn.innerHTML = "⚠ Invalid File";
-              autoBackupBtn.style.backgroundColor = "#dc3545";
-
-              setTimeout(() => {
-                autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
-                autoBackupBtn.style.backgroundColor = "";
-              }, 2000);
-            }
-          } else {
-            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
-            autoBackupBtn.style.backgroundColor = "";
-            return;
-          }
-        }
       } catch (err) {
         console.error('Error during backup:', err);
         const autoBackupBtn = document.getElementById("autoBackupBtn");
@@ -2048,33 +2044,24 @@
       if (!lastBackupStr) return;
 
       try {
-        const [datePart, timePart] = lastBackupStr.split(", ");
-        const [day, month, year] = datePart.split("/");
-        const [hours, minutes, seconds] = timePart.split(":");
-
-        const lastBackupDate = new Date(
-          parseInt(year),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(hours),
-          parseInt(minutes),
-          parseInt(seconds)
-        );
-
+        // Parse the date directly using Date constructor since it's in a standard format
+        const lastBackupDate = new Date(lastBackupStr);
         const now = new Date();
+        
+        // Add 1 minute buffer to account for slight time differences
+        const futureLimit = new Date(now.getTime() + 60000);
 
-        now.setHours(now.getHours() + 1);
-
-        if (isNaN(lastBackupDate.getTime()) || lastBackupDate > now) {
+        if (isNaN(lastBackupDate.getTime()) || lastBackupDate > futureLimit) {
           console.log("Invalid backup date detected:", {
             lastBackupStr,
             parsed: lastBackupDate,
-            now: now,
+            now: now
           });
           localStorage.removeItem(LAST_BACKUP_KEY);
         }
       } catch (err) {
         console.error("Error parsing backup date:", err);
+        localStorage.removeItem(LAST_BACKUP_KEY);
       }
     }
 
@@ -2371,6 +2358,7 @@
       });
 
       Coloris({
+        theme: 'default',
         themeMode: currentTheme,
         alpha: false,
         formatToggle: false,
@@ -2390,14 +2378,9 @@
           '#06d6a0',
           '#118ab2',
           '#073b4c',
-        ]
-      });
-
-      Coloris.setInstance('[data-coloris]', {
-        theme: 'default',
-        themeMode: currentTheme,
+        ],
         position: 'bottom-start',
-        margin: 2,
+        margin: 2
       });
 
       document.addEventListener('coloris:show', event => {
@@ -2425,16 +2408,8 @@
     });
 
     function updateBackupStatus(now) {
-      const formattedDate = now.toLocaleString(navigator.language, {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
-      });
-      localStorage.setItem(LAST_BACKUP_KEY, formattedDate);
+      // Store the date in ISO format for consistent parsing
+      localStorage.setItem(LAST_BACKUP_KEY, now.toISOString());
 
       const autoBackupBtn = document.getElementById("autoBackupBtn");
       if (autoBackupBtn) {
@@ -2558,6 +2533,355 @@
 
       return luminance > 0.5 ? "#000000" : "#ffffff";
     }
+
+    // Add after other global variables
+    const searchBtn = document.getElementById("searchBtn");
+    const searchModal = document.querySelector(".search-modal");
+    const searchOverlay = document.querySelector(".search-overlay");
+    const searchInput = document.querySelector(".search-input");
+    const noResults = document.querySelector(".no-results");
+    const resultsContainer = document.querySelector(".results-container");
+
+    function showSearchModal() {
+      searchModal.style.display = "block";
+      searchOverlay.style.display = "block";
+      searchInput.focus();
+      searchInput.value = "";
+      noResults.style.display = "flex";
+      resultsContainer.style.display = "none";
+    }
+
+    function hideSearchModal() {
+      searchModal.style.display = "none";
+      searchOverlay.style.display = "none";
+      searchInput.value = "";
+    }
+
+    function performSearch(query) {
+      query = query.toLowerCase().trim();
+      
+      const projectResults = [];
+      const listResults = [];
+      const taskResults = [];
+
+      appData.forEach(project => {
+        // Search in project names
+        if (project.name.toLowerCase().includes(query)) {
+          projectResults.push({
+            type: 'project',
+            name: project.name,
+            id: project.id
+          });
+        }
+
+        // Search in lists and tasks
+        project.lists.forEach(list => {
+          if (list.name.toLowerCase().includes(query)) {
+            listResults.push({
+              type: 'list',
+              name: list.name,
+              projectName: project.name,
+              projectId: project.id,
+              id: list.id
+            });
+          }
+
+          // Search in list items
+          list.items.forEach(item => {
+            const content = (item.content || item.name || '').toLowerCase();
+            if (content.includes(query)) {
+              taskResults.push({
+                type: 'task',
+                content: item.content || item.name,
+                itemType: item.type,
+                completed: item.completed,
+                dueDate: item.dueDate,
+                projectName: project.name,
+                listName: list.name,
+                projectId: project.id,
+                listId: list.id,
+                id: item.id
+              });
+            }
+          });
+
+          // Search in sublists
+          if (list.subLists) {
+            list.subLists.forEach(subList => {
+              if (subList.name.toLowerCase().includes(query)) {
+                listResults.push({
+                  type: 'sublist',
+                  name: subList.name,
+                  projectName: project.name,
+                  listName: list.name,
+                  projectId: project.id,
+                  parentListId: list.id,
+                  id: subList.id
+                });
+              }
+
+              subList.items?.forEach(item => {
+                const content = (item.content || item.name || '').toLowerCase();
+                if (content.includes(query)) {
+                  taskResults.push({
+                    type: 'task',
+                    content: item.content || item.name,
+                    itemType: item.type,
+                    completed: item.completed,
+                    dueDate: item.dueDate,
+                    projectName: project.name,
+                    listName: `${list.name} > ${subList.name}`,
+                    projectId: project.id,
+                    listId: subList.id,
+                    parentListId: list.id,
+                    id: item.id
+                  });
+                }
+              });
+            });
+          }
+        });
+      });
+
+      displayResults(projectResults, listResults, taskResults, query);
+    }
+
+    function displayResults(projects, lists, tasks, query) {
+      const projectsList = document.querySelector(".projects-group .results-list");
+      const listsList = document.querySelector(".lists-group .results-list");
+      const tasksList = document.querySelector(".tasks-group .results-list");
+
+      projectsList.innerHTML = "";
+      listsList.innerHTML = "";
+      tasksList.innerHTML = "";
+
+      const hasResults = projects.length > 0 || lists.length > 0 || tasks.length > 0;
+      noResults.style.display = hasResults ? "none" : "flex";
+      resultsContainer.style.display = hasResults ? "block" : "none";
+
+      document.querySelector(".projects-group").style.display = projects.length ? "block" : "none";
+      document.querySelector(".lists-group").style.display = lists.length ? "block" : "none";
+      document.querySelector(".tasks-group").style.display = tasks.length ? "block" : "none";
+
+      projects.forEach(project => {
+        const div = document.createElement("div");
+        div.className = "search-result project-result";
+        div.innerHTML = `
+          <i class="fas fa-project-diagram"></i>
+          <div class="result-content">
+            <div class="result-title">${highlightText(project.name, query)}</div>
+          </div>
+        `;
+        div.addEventListener("click", () => {
+          hideSearchModal();
+          const projectElement = document.querySelector(`#project-${project.id}`);
+          if (projectElement) {
+            const originalColor = window.getComputedStyle(projectElement).backgroundColor;
+            const originalBorder = projectElement.style.border;
+            
+            const blurOverlay = document.createElement('div');
+            blurOverlay.style.position = 'fixed';
+            blurOverlay.style.top = '0';
+            blurOverlay.style.left = '0';
+            blurOverlay.style.right = '0';
+            blurOverlay.style.bottom = '0';
+            blurOverlay.style.backgroundColor = 'rgba(0,0,0,0.1)';
+            blurOverlay.style.backdropFilter = 'blur(3px)';
+            blurOverlay.style.zIndex = '100';
+            document.body.appendChild(blurOverlay);
+            
+            projectElement.style.position = 'relative';
+            projectElement.style.zIndex = '101';
+            projectElement.style.backgroundColor = 'var(--accent-color)';
+            projectElement.style.border = `2px solid ${getThemeContrastColor()}`;
+            projectElement.style.boxShadow = `0 0 15px ${getThemeContrastColor()}`;
+            
+            projectElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center'
+            });
+            
+            setTimeout(() => {
+              blurOverlay.remove();
+              projectElement.style.backgroundColor = originalColor;
+              projectElement.style.border = originalBorder;
+              projectElement.style.boxShadow = '';
+              projectElement.style.position = '';
+              projectElement.style.zIndex = '';
+            }, 2000);
+          }
+        });
+        projectsList.appendChild(div);
+      });
+
+      lists.forEach(list => {
+        const div = document.createElement("div");
+        div.className = "search-result list-result";
+        div.innerHTML = `
+          <i class="fas fa-list"></i>
+          <div class="result-content">
+            <div class="result-title">${highlightText(list.name, query)}</div>
+            <div class="result-subtitle">in ${list.projectName}</div>
+          </div>
+        `;
+        div.addEventListener("click", () => {
+          hideSearchModal();
+          const projectElement = document.querySelector(`#project-${list.projectId}`);
+          if (projectElement) {
+            const listElement = projectElement.querySelector(`.list:has(.list-header:contains("${list.name}"))`);
+            if (listElement) {
+              const originalColor = window.getComputedStyle(listElement).backgroundColor;
+              const originalBorder = listElement.style.border;
+              
+              const blurOverlay = document.createElement('div');
+              blurOverlay.style.position = 'fixed';
+              blurOverlay.style.top = '0';
+              blurOverlay.style.left = '0';
+              blurOverlay.style.right = '0';
+              blurOverlay.style.bottom = '0';
+              blurOverlay.style.backgroundColor = 'rgba(0,0,0,0.1)';
+              blurOverlay.style.backdropFilter = 'blur(3px)';
+              blurOverlay.style.zIndex = '100';
+              document.body.appendChild(blurOverlay);
+              
+              listElement.style.position = 'relative';
+              listElement.style.zIndex = '101';
+              listElement.style.backgroundColor = 'var(--accent-color)';
+              listElement.style.border = `2px solid ${getThemeContrastColor()}`;
+              listElement.style.boxShadow = `0 0 15px ${getThemeContrastColor()}`;
+              
+              listElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center'
+              });
+              
+              setTimeout(() => {
+                blurOverlay.remove();
+                listElement.style.backgroundColor = originalColor;
+                listElement.style.border = originalBorder;
+                listElement.style.boxShadow = '';
+                listElement.style.position = '';
+                listElement.style.zIndex = '';
+              }, 2000);
+            }
+          }
+        });
+        tasksList.appendChild(div);
+      });
+
+      tasks.forEach(task => {
+        const div = document.createElement("div");
+        div.className = "search-result task-result";
+        const icon = task.itemType === "todo" ? 
+          `<i class="far ${task.completed ? 'fa-check-square' : 'fa-square'}"></i>` : 
+          '<i class="far fa-note-sticky"></i>';
+        
+        let dueDate = '';
+        if (task.dueDate) {
+          const date = new Date(task.dueDate);
+          dueDate = `<span class="due-date">${formatCompactDate(date)}</span>`;
+        }
+
+        // Get context around the matched text
+        const content = stripHtml(task.content);
+        const matchIndex = content.toLowerCase().indexOf(query.toLowerCase());
+        let contextText = '';
+        
+        if (matchIndex >= 0) {
+          const start = Math.max(0, matchIndex - 50);
+          const end = Math.min(content.length, matchIndex + query.length + 50);
+          contextText = content.substring(start, end);
+          
+          if (start > 0) contextText = '...' + contextText;
+          if (end < content.length) contextText += '...';
+        } else {
+          contextText = content.substring(0, 100) + (content.length > 100 ? '...' : '');
+        }
+
+        div.innerHTML = `
+          ${icon}
+          <div class="result-content">
+            <div class="result-title ${task.completed ? 'completed' : ''}">${highlightText(contextText, query)}</div>
+            <div class="result-subtitle">
+              in ${task.projectName} > ${task.listName}
+              ${dueDate}
+            </div>
+          </div>
+        `;
+
+        div.addEventListener("click", () => {
+          hideSearchModal();
+          const projectElement = document.querySelector(`#project-${task.projectId}`);
+          if (projectElement) {
+            const taskElement = projectElement.querySelector(`[data-item-id="${task.id}"]`);
+            if (taskElement) {
+              const originalColor = window.getComputedStyle(taskElement).backgroundColor;
+              const originalBorder = taskElement.style.border;
+              
+              const blurOverlay = document.createElement('div');
+              blurOverlay.style.position = 'fixed';
+              blurOverlay.style.top = '0';
+              blurOverlay.style.left = '0';
+              blurOverlay.style.right = '0';
+              blurOverlay.style.bottom = '0';
+              blurOverlay.style.backgroundColor = 'rgba(0,0,0,0.1)';
+              blurOverlay.style.backdropFilter = 'blur(3px)';
+              blurOverlay.style.zIndex = '100';
+              document.body.appendChild(blurOverlay);
+              
+              taskElement.style.position = 'relative';
+              taskElement.style.zIndex = '101';
+              taskElement.style.backgroundColor = 'var(--accent-color)';
+              taskElement.style.border = `2px solid ${getThemeContrastColor()}`;
+              taskElement.style.boxShadow = `0 0 15px ${getThemeContrastColor()}`;
+              
+              taskElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center'
+              });
+              
+              setTimeout(() => {
+                blurOverlay.remove();
+                taskElement.style.backgroundColor = originalColor;
+                taskElement.style.border = originalBorder;
+                taskElement.style.boxShadow = '';
+                taskElement.style.position = '';
+                taskElement.style.zIndex = '';
+              }, 2000);
+            }
+          }
+        });
+        tasksList.appendChild(div);
+      });
+    }
+
+    function highlightText(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    // Event Listeners
+    searchBtn.addEventListener("click", showSearchModal);
+    searchOverlay.addEventListener("click", hideSearchModal);
+
+    searchInput.addEventListener("input", (e) => {
+      performSearch(e.target.value);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        showSearchModal();
+      } else if (e.key === "Escape" && searchModal.style.display === "block") {
+        hideSearchModal();
+      }
+    });
+
+    // Add this helper function at the top with other functions
+    function getThemeContrastColor() {
+      return currentTheme === 'dark' ? '#ffffff' : '#000000';
+    }
   </script>
 </body>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -2567,8 +2891,10 @@
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
 <script type="text/javascript" src="https://unpkg.com/moment@2.30.1/min/moment.min.js"></script>
-<script type="text/javascript" src="https://unpkg.com/vis-data@7.1.9/peer/umd/vis-data.min.js"></script>
-<script type="text/javascript" src="https://unpkg.com/vis-timeline@7.7.3/styles/vis-timeline-graph2d.min.css"></script>
+<script src="https://unpkg.com/vis-data@7.1.9/peer/umd/vis-data.min.js"></script>
+<script src="https://unpkg.com/vis-timeline/peer/umd/vis-timeline-graph2d.min.js"></script>
+<script>
+  const { Timeline, DataSet } = vis;
+</script>
 </html>
