@@ -1,0 +1,3099 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TasKan - Offline first task tracker</title>
+
+    <!-- Add this script before any styles -->
+    <script>
+      // Immediately set theme on page load
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+    <!-- Main Stylesheet-->
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="top-menu">
+        <div class="logo">
+          <h1>TASKAN</h1>
+          <span class="tagline">Organize. Track. Achieve.</span>
+        </div>
+        <div class="top-menu-buttons">
+          <button id="addProjectBtn" title="Create New Project">
+            New Project
+          </button>
+          <button id="searchBtn" title="Search (Ctrl/Cmd + K)">
+            <i class="fas fa-search"></i>
+          </button>
+          <button id="importDataBtn" title="Import Data">
+            <i class="fa-solid fa-file-import"></i>
+          </button>
+          <button id="autoBackupBtn" title="Setup Auto-backup">
+            <i class="fa-solid fa-file-export"></i>
+          </button>
+          <button id="historyBtn" title="View Task History">
+            <i class="fa fa-history"></i>
+          </button>
+          <button id="themeToggleBtn" title="Toggle Theme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <a
+            href="https://buymeacoffee.com/itcon"
+            target="_blank"
+            id="coffeeBtn"
+          >
+            <button title="Buy me a coffee">
+              <i class="fas fa-mug-hot"></i>
+            </button>
+          </a>
+        </div>
+      </div>
+      <div id="projectsContainer" class="projects-container"></div>
+      <div class="footer">
+        ©
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+        ITCON • Made with <span class="heart">♥</span> in Melbourne, AU. Submit
+        feature requests, issues at
+        <a
+          href="https://github.com/itcon-pty-au/taskan"
+          target="_blank"
+          class="github-link"
+          title="View on GitHub"
+        >
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="editor-overlay"></div>
+    <div class="editor-popup">
+      <div class="editor-header">
+        <h3>Edit Note</h3>
+        <button class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="due-date-container" style="display: none">
+        <label>Due Date:</label>
+        <input type="date" id="dueDateInput" />
+        <button id="clearDueDate" title="Clear Due Date">
+          <i class="fas fa-times"></i>
+        </button>
+        <span class="due-date-info"></span>
+      </div>
+      <div id="summernote"></div>
+    </div>
+
+    <div class="history-overlay"></div>
+    <div class="history-modal">
+      <div class="history-modal-header">
+        <h3>Task History</h3>
+        <div>
+          <button class="cleanup-btn" title="Clear All History">
+            <i class="fas fa-trash"></i> Clear History
+          </button>
+          <button class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <input type="text" class="history-search" placeholder="Search tasks..." />
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Started At</th>
+            <th>Completed At</th>
+            <th>Time Taken</th>
+            <th style="width: 50px">Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="form-overlay" style="display: none"></div>
+    <div class="project-form" style="display: none">
+      <div class="project-form-header">
+        <h2>New Project</h2>
+        <div class="form-buttons">
+          <button class="submit-btn" title="Save Project">
+            <i class="fa-solid fa-save"></i>
+          </button>
+          <button class="cancel-btn" title="Cancel">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div>
+        <input type="text" id="projectName" placeholder="Enter project name" />
+      </div>
+
+      <div class="tags-container">
+        <h3>Tags</h3>
+        <div class="tags-input-container">
+          <input
+            type="text"
+            class="tags-input"
+            placeholder="Enter tags (comma separated)"
+          />
+          <div
+            class="color-preview"
+            title="Choose tag color"
+            style="background-color: #f4a261"
+          ></div>
+          <input
+            type="text"
+            class="tag-color-picker"
+            data-coloris
+            value="#f4a261"
+            style="display: none"
+          />
+        </div>
+      </div>
+
+      <div class="milestones-container">
+        <h3>
+          Milestones
+          <button class="add-milestone-btn" title="Add Milestone">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </h3>
+        <div id="milestoneEntries"></div>
+      </div>
+    </div>
+
+    <div class="search-overlay" style="display: none"></div>
+    <div class="search-modal" style="display: none">
+      <div class="search-header">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search projects, lists and tasks... (Esc to close)"
+          />
+          <kbd class="shortcut-hint">Ctrl/⌘ K</kbd>
+        </div>
+      </div>
+      <div class="search-results">
+        <div class="no-results" style="display: none">
+          <i class="fas fa-search"></i>
+          <p>No results found</p>
+        </div>
+        <div class="results-container">
+          <div class="results-group projects-group">
+            <h3>Projects</h3>
+            <div class="results-list"></div>
+          </div>
+          <div class="results-group lists-group">
+            <h3>Lists</h3>
+            <div class="results-list"></div>
+          </div>
+          <div class="results-group tasks-group">
+            <h3>Tasks</h3>
+            <div class="results-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const AUTO_BACKUP_KEY = "kanbanAutoBackupHandle";
+      const BACKUP_INTERVAL = 1000 * 60 * 60;
+      const LAST_BACKUP_KEY = "kanbanLastBackupTime";
+
+      const projectsContainer = document.getElementById("projectsContainer");
+      const addProjectBtn = document.getElementById("addProjectBtn");
+      const importDataBtn = document.getElementById("importDataBtn");
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+      const historyBtn = document.getElementById("historyBtn");
+
+      let appData = (() => {
+        const backupConfig = localStorage.getItem(AUTO_BACKUP_KEY);
+        const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
+
+        const data = JSON.parse(localStorage.getItem("kanbanData")) || [];
+
+        if (backupConfig) {
+          localStorage.setItem(AUTO_BACKUP_KEY, backupConfig);
+        }
+        if (lastBackupTime) {
+          localStorage.setItem(LAST_BACKUP_KEY, lastBackupTime);
+        }
+
+        return data;
+      })();
+
+      function saveData() {
+        const backupConfig = localStorage.getItem(AUTO_BACKUP_KEY);
+        const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
+
+        localStorage.setItem("kanbanData", JSON.stringify(appData));
+
+        if (backupConfig) {
+          localStorage.setItem(AUTO_BACKUP_KEY, backupConfig);
+        }
+        if (lastBackupTime) {
+          localStorage.setItem(LAST_BACKUP_KEY, lastBackupTime);
+        }
+      }
+
+      let currentTheme = localStorage.getItem("theme") || "dark";
+      let taskHistory = JSON.parse(localStorage.getItem("taskHistory")) || [];
+      let activeTimers = new Map();
+
+      function createEditableElement(tag, value, onChange) {
+        const el = document.createElement(tag);
+        el.classList.add("editable");
+        el.innerHTML = value ? formatTextWithLinks(value) : "";
+
+        el.contentEditable = false;
+
+        el.addEventListener("dblclick", () => {
+          makeEditable(el);
+        });
+
+        function makeEditable(element) {
+          element.contentEditable = true;
+          element.textContent = element.textContent || "";
+          element.focus();
+
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(element);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+
+        el.addEventListener("blur", () => {
+          el.contentEditable = false;
+          let newValue = el.textContent.trim();
+
+          if (!newValue) {
+            newValue = "Untitled";
+          }
+
+          onChange(newValue);
+          el.innerHTML = formatTextWithLinks(newValue);
+        });
+
+        if (!value) {
+          setTimeout(() => {
+            makeEditable(el);
+          }, 0);
+        }
+
+        el.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            if (event.shiftKey) {
+              event.preventDefault();
+              document.execCommand("insertLineBreak");
+            } else {
+              event.preventDefault();
+              el.blur();
+            }
+          }
+        });
+
+        return el;
+      }
+
+      function createDeleteButton(deleteAction) {
+        const deleteButton = document.createElement("button");
+        deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+        deleteButton.title = "Delete";
+
+        let confirmTimeout;
+        let isConfirming = false;
+
+        deleteButton.addEventListener("click", () => {
+          if (isConfirming) {
+            clearTimeout(confirmTimeout);
+            deleteAction();
+          } else {
+            isConfirming = true;
+            deleteButton.innerHTML = "Sure?";
+            deleteButton.title = "Click again to confirm deletion";
+            deleteButton.classList.add("delete-confirm");
+
+            confirmTimeout = setTimeout(() => {
+              isConfirming = false;
+              deleteButton.innerHTML =
+                '<i class="fa-regular fa-trash-can"></i>';
+              deleteButton.title = "Delete";
+              deleteButton.classList.remove("delete-confirm");
+            }, 5000);
+          }
+        });
+
+        return deleteButton;
+      }
+
+      function createProject(
+        project,
+        projectElement = document.createElement("div")
+      ) {
+        projectElement.className = "project";
+        projectElement.id = `project-${project.id}`;
+
+        const header = document.createElement("div");
+        header.className = "project-header";
+
+        const headerContent = document.createElement("div");
+        headerContent.className = "project-header-content";
+
+        const projectName = createEditableElement(
+          "div",
+          project.name,
+          (newName) => {
+            project.name = newName;
+            saveData();
+          }
+        );
+
+        headerContent.appendChild(projectName);
+
+        if (project.tags && project.tags.length > 0) {
+          const tagsContainer = document.createElement("div");
+          tagsContainer.className = "project-tags";
+
+          project.tags.forEach((tag) => {
+            const tagElement = document.createElement("span");
+            tagElement.className = "project-tag";
+            tagElement.textContent = tag;
+            tagElement.style.backgroundColor = project.tagColor || "#555555";
+            tagElement.style.color = getContrastColor(
+              project.tagColor || "#555555"
+            );
+            tagsContainer.appendChild(tagElement);
+          });
+
+          headerContent.appendChild(tagsContainer);
+        }
+
+        header.appendChild(headerContent);
+
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.gap = "5px";
+        const editButton = document.createElement("button");
+        editButton.innerHTML = '<i class="fas fa-pen"></i>';
+        editButton.title = "Edit Project";
+        editButton.onclick = () => {
+          const item = {
+            id: Date.now(),
+            type: "project",
+            content: project.name,
+            isNew: false,
+          };
+          showProjectForm(project);
+        };
+
+        const addListButton = document.createElement("button");
+        addListButton.className = "add-list-btn";
+        addListButton.innerHTML = '<i class="fas fa-plus"></i>';
+        addListButton.title = "Add List";
+        addListButton.onclick = () => {
+          const newList = { id: Date.now(), name: "", items: [] };
+          project.lists.push(newList);
+          saveData();
+          renderSingleProject(project);
+        };
+
+        const collapseBtn = document.createElement("button");
+        collapseBtn.innerHTML = project.collapsed
+          ? '<i class="fas fa-chevron-down"></i>'
+          : '<i class="fas fa-chevron-up"></i>';
+        collapseBtn.title = project.collapsed ? "Expand" : "Collapse";
+        collapseBtn.onclick = () => {
+          project.collapsed = !project.collapsed;
+          saveData();
+          renderSingleProject(project);
+        };
+
+        const moveUpBtn = document.createElement("button");
+        moveUpBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+        moveUpBtn.title = "Move Project Up";
+        moveUpBtn.disabled = appData.indexOf(project) === 0;
+        moveUpBtn.onclick = () => {
+          const index = appData.indexOf(project);
+          if (index > 0) {
+            [appData[index], appData[index - 1]] = [
+              appData[index - 1],
+              appData[index],
+            ];
+            saveData();
+            renderProjects();
+          }
+        };
+
+        const moveDownBtn = document.createElement("button");
+        moveDownBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
+        moveDownBtn.title = "Move Project Down";
+        moveDownBtn.disabled = appData.indexOf(project) === appData.length - 1;
+        moveDownBtn.onclick = () => {
+          const index = appData.indexOf(project);
+          if (index < appData.length - 1) {
+            [appData[index], appData[index + 1]] = [
+              appData[index + 1],
+              appData[index],
+            ];
+            saveData();
+            renderProjects();
+          }
+        };
+
+        const deleteButton = createDeleteButton(() => {
+          const index = appData.indexOf(project);
+          if (index > -1) {
+            appData.splice(index, 1);
+            saveData();
+            renderProjects();
+          }
+        });
+
+        buttonContainer.appendChild(editButton);
+        buttonContainer.appendChild(addListButton);
+        buttonContainer.appendChild(collapseBtn);
+        buttonContainer.appendChild(moveUpBtn);
+        buttonContainer.appendChild(moveDownBtn);
+        buttonContainer.appendChild(deleteButton);
+
+        header.appendChild(headerContent);
+        header.appendChild(buttonContainer);
+        projectElement.appendChild(header);
+
+        const listsContainer = document.createElement("div");
+        listsContainer.classList.add("lists-container");
+        if (project.collapsed) listsContainer.style.display = "none";
+
+        project.lists.forEach((list, index) =>
+          createList(project, list, listsContainer, index, project.lists.length)
+        );
+
+        projectElement.appendChild(listsContainer);
+
+        if (project.milestones && project.milestones.length > 0) {
+          const timelineContainer = createTimeline(project);
+          projectElement.insertBefore(timelineContainer, listsContainer);
+        }
+
+        if (!projectElement.parentNode) {
+          projectsContainer.appendChild(projectElement);
+        }
+
+        return projectElement;
+      }
+
+      function createList(project, list, container, index, totalLists) {
+        if (!list.id) {
+          list.id = Date.now() + Math.random();
+        }
+
+        const listDiv = document.createElement("div");
+        listDiv.classList.add("list");
+
+        const header = document.createElement("div");
+        header.classList.add("list-header");
+
+        const rearrangeButtons = document.createElement("div");
+        rearrangeButtons.classList.add("rearrange-buttons");
+
+        const headerContent = document.createElement("div");
+        headerContent.classList.add("list-header-content");
+
+        const listNameEl = createEditableElement(
+          "div",
+          list.name,
+          (newName) => {
+            list.name = newName;
+            saveData();
+            if (!newName) {
+              project.lists = project.lists.filter((l) => l.id !== list.id);
+              saveData();
+              renderSingleProject(project);
+            }
+          }
+        );
+
+        const addTodoButton = document.createElement("button");
+        addTodoButton.innerHTML = '<i class="fa-regular fa-square-check"></i>';
+        addTodoButton.title = "New Todo";
+        addTodoButton.addEventListener("click", () => {
+          openEditor({
+            id: Date.now(),
+            type: "todo",
+            completed: false,
+            isNew: true,
+            list: list,
+          });
+        });
+
+        const addNoteButton = document.createElement("button");
+        addNoteButton.innerHTML = '<i class="fa-regular fa-note-sticky"></i>';
+        addNoteButton.title = "New Note";
+        addNoteButton.addEventListener("click", () => {
+          openEditor({
+            id: Date.now(),
+            type: "note",
+            isNew: true,
+            list: list,
+          });
+        });
+
+        const addSubListButton = document.createElement("button");
+        addSubListButton.innerHTML = '<i class="fas fa-layer-group"></i>';
+        addSubListButton.title = "Add Sub-list";
+        addSubListButton.addEventListener("click", () => {
+          const newSubList = {
+            id: Date.now(),
+            name: "",
+            items: [],
+            isSubList: true,
+            parentListId: list.id,
+            isNew: true,
+          };
+          if (!list.subLists) list.subLists = [];
+          list.subLists.push(newSubList);
+          saveData();
+          renderSingleProject(project);
+        });
+
+        const deleteListButton = createDeleteButton(() => {
+          project.lists = project.lists.filter((l) => l.id !== list.id);
+          saveData();
+          renderSingleProject(project);
+        });
+        deleteListButton.title = "Delete List";
+
+        if (index > 0) {
+          const movePrevBtn = document.createElement("i");
+          movePrevBtn.className = "fas fa-chevron-left";
+          movePrevBtn.style.cursor = "pointer";
+          movePrevBtn.title = "Move List Left";
+          movePrevBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            const projectIndex = appData.findIndex((p) => p.id === project.id);
+            if (projectIndex !== -1) {
+              [
+                appData[projectIndex].lists[index - 1],
+                appData[projectIndex].lists[index],
+              ] = [
+                appData[projectIndex].lists[index],
+                appData[projectIndex].lists[index - 1],
+              ];
+              saveData();
+              renderSingleProject(appData[projectIndex]);
+            }
+          });
+          rearrangeButtons.appendChild(movePrevBtn);
+        }
+
+        if (index < totalLists - 1) {
+          const moveNextBtn = document.createElement("i");
+          moveNextBtn.className = "fas fa-chevron-right";
+          moveNextBtn.style.cursor = "pointer";
+          moveNextBtn.title = "Move List Right";
+          moveNextBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            const projectIndex = appData.findIndex((p) => p.id === project.id);
+            if (projectIndex !== -1) {
+              [
+                appData[projectIndex].lists[index + 1],
+                appData[projectIndex].lists[index],
+              ] = [
+                appData[projectIndex].lists[index],
+                appData[projectIndex].lists[index + 1],
+              ];
+              saveData();
+              renderSingleProject(appData[projectIndex]);
+            }
+          });
+          rearrangeButtons.appendChild(moveNextBtn);
+        }
+
+        header.appendChild(rearrangeButtons);
+        headerContent.appendChild(listNameEl);
+        header.appendChild(headerContent);
+
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.gap = "5px";
+
+        buttonContainer.appendChild(addTodoButton);
+        buttonContainer.appendChild(addNoteButton);
+        buttonContainer.appendChild(addSubListButton);
+        buttonContainer.appendChild(deleteListButton);
+        headerContent.appendChild(buttonContainer);
+
+        const listItemsContainer = document.createElement("div");
+        listItemsContainer.classList.add("list-items");
+
+        listItemsContainer.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          const draggingItem = document.querySelector(".dragging");
+          if (!draggingItem) return;
+
+          const items = Array.from(listItemsContainer.children);
+          const lastItem = items[items.length - 1];
+
+          if (
+            !items.length ||
+            (lastItem && e.clientY > lastItem.getBoundingClientRect().bottom)
+          ) {
+            removePlaceholders();
+            const placeholder = createPlaceholder();
+            listItemsContainer.appendChild(placeholder);
+          }
+        });
+
+        listItemsContainer.addEventListener("dragleave", () => {
+          listItemsContainer.classList.remove("drop-highlight");
+        });
+
+        listItemsContainer.addEventListener("drop", (e) => {
+          e.preventDefault();
+          try {
+            const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+            if (data.type === "sublist") {
+              const { subListId, parentListId, sourceListId } = data;
+              const sourceList = appData
+                .flatMap((p) => p.lists)
+                .find((l) => l.id === sourceListId);
+
+              if (!sourceList) return;
+              if (!sourceList.subLists) sourceList.subLists = [];
+
+              const draggedSubList = sourceList.subLists.find(
+                (sl) => sl.id === subListId
+              );
+              if (!draggedSubList) return;
+
+              sourceList.subLists = sourceList.subLists.filter(
+                (sl) => sl.id !== subListId
+              );
+
+              if (!list.subLists) {
+                list.subLists = [];
+              }
+
+              const placeholder =
+                listItemsContainer.querySelector(".drop-placeholder");
+              if (placeholder) {
+                const items = Array.from(listItemsContainer.children);
+                const placeholderIndex = items.indexOf(placeholder);
+                const numItems = list.items.length;
+                const subListIndex = Math.max(0, placeholderIndex - numItems);
+                list.subLists.splice(subListIndex, 0, draggedSubList);
+              } else {
+                list.subLists.push(draggedSubList);
+              }
+              draggedSubList.parentListId = list.id;
+            } else {
+              const { itemId, listId, isSubListItem, parentListId } = data;
+
+              let sourceList;
+              let sourceItems;
+
+              if (isSubListItem) {
+                const parentList = appData
+                  .flatMap((p) => p.lists)
+                  .find((l) => l.id === parentListId);
+
+                if (parentList && parentList.subLists) {
+                  sourceList = parentList.subLists.find(
+                    (sl) => sl.id === listId
+                  );
+                  if (sourceList) {
+                    sourceItems = sourceList.items;
+                  }
+                }
+              } else {
+                sourceList = appData
+                  .flatMap((p) => p.lists)
+                  .find((l) => l.id === listId);
+                if (sourceList) {
+                  sourceItems = sourceList.items;
+                }
+              }
+
+              if (!sourceItems) return;
+              const draggedItem = sourceItems.find((i) => i.id === itemId);
+              if (!draggedItem) return;
+
+              sourceItems = sourceItems.filter((i) => i.id !== itemId);
+              if (isSubListItem) {
+                sourceList.items = sourceItems;
+              } else {
+                sourceList.items = sourceItems;
+              }
+
+              const placeholder =
+                listItemsContainer.querySelector(".drop-placeholder");
+              if (placeholder) {
+                const items = Array.from(listItemsContainer.children);
+                const placeholderIndex = items.indexOf(placeholder);
+
+                list.items.splice(placeholderIndex, 0, draggedItem);
+              } else {
+                list.items.push(draggedItem);
+              }
+            }
+
+            saveData();
+            renderSingleProject(project);
+          } catch (err) {
+            console.error("Error during drag and drop:", err);
+          }
+        });
+
+        if (!list.items) list.items = [];
+
+        list.items.forEach((item) =>
+          createListItem(list, item, listItemsContainer, project)
+        );
+
+        if (!list.subLists) {
+          list.subLists = [];
+        }
+
+        if (list.subLists.length > 0) {
+          list.subLists.forEach((subList) => {
+            if (!subList) return;
+            subList.isSubList = true;
+            subList.parentListId = list.id;
+
+            const subListDiv = document.createElement("div");
+            subListDiv.classList.add("sub-list");
+            subListDiv.setAttribute("draggable", "true");
+            subListDiv.dataset.subListId = subList.id;
+
+            const subListHeader = document.createElement("div");
+            subListHeader.classList.add("sub-list-header");
+
+            const subListTitle = createEditableElement(
+              "div",
+              subList.name,
+              (newName) => {
+                if (newName) {
+                  subList.name = newName;
+                  subList.isNew = false;
+                  saveData();
+                } else if (subList.isNew || !subList.name) {
+                  list.subLists = list.subLists.filter(
+                    (sl) => sl.id !== subList.id
+                  );
+                  saveData();
+                  renderSingleProject(project);
+                } else {
+                  subListTitle.innerHTML = formatTextWithLinks(subList.name);
+                }
+              }
+            );
+            subListTitle.style.flexGrow = "1";
+
+            if (subList.isNew || !subList.name) {
+              setTimeout(() => {
+                subListTitle.contentEditable = true;
+                subListTitle.focus();
+              }, 0);
+            }
+
+            const deleteSubListButton = createDeleteButton(() => {
+              list.subLists = list.subLists.filter(
+                (sl) => sl.id !== subList.id
+              );
+              saveData();
+              renderSingleProject(project);
+            });
+
+            subListHeader.appendChild(subListTitle);
+            subListHeader.appendChild(deleteSubListButton);
+            subListDiv.appendChild(subListHeader);
+
+            const subListItems = document.createElement("div");
+            subListItems.classList.add("sub-list-items");
+
+            if (!subList.items) {
+              subList.items = [];
+            }
+
+            subList.items.forEach((item) => {
+              if (!item) return;
+              item.parentListId = list.id;
+              createListItem(subList, item, subListItems, project);
+            });
+
+            subListItems.addEventListener("dragover", (e) => {
+              e.preventDefault();
+              const draggingItem = document.querySelector(".dragging");
+              if (!draggingItem) return;
+
+              removePlaceholders();
+              const placeholder = createPlaceholder();
+              subListItems.appendChild(placeholder);
+            });
+
+            subListItems.addEventListener("drop", (e) => {
+              e.preventDefault();
+              try {
+                const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+                if (data.type === "sublist") {
+                  const { subListId, parentListId, sourceListId } = data;
+                  const sourceList = appData
+                    .flatMap((p) => p.lists)
+                    .find((l) => l.id === sourceListId);
+                  const draggedSubList = sourceList.subLists.find(
+                    (sl) => sl.id === subListId
+                  );
+
+                  if (!draggedSubList || draggedSubList.id === subList.id)
+                    return;
+
+                  sourceList.subLists = sourceList.subLists.filter(
+                    (sl) => sl.id !== subListId
+                  );
+
+                  const placeholder =
+                    subListItems.querySelector(".drop-placeholder");
+                  if (placeholder) {
+                    const items = Array.from(subListItems.children);
+                    const placeholderIndex = items.indexOf(placeholder);
+
+                    subList.items.splice(placeholderIndex, 0, draggedSubList);
+                  } else {
+                    subList.items.push(draggedSubList);
+                  }
+                  draggedSubList.parentListId = list.id;
+                } else {
+                  const { itemId, listId, isSubListItem, parentListId } = data;
+
+                  let sourceList;
+                  let sourceItems;
+
+                  if (isSubListItem) {
+                    const parentList = appData
+                      .flatMap((p) => p.lists)
+                      .find((l) => l.id === parentListId);
+
+                    if (parentList && parentList.subLists) {
+                      sourceList = parentList.subLists.find(
+                        (sl) => sl.id === listId
+                      );
+                      if (sourceList) {
+                        sourceItems = sourceList.items;
+                      }
+                    }
+                  } else {
+                    sourceList = appData
+                      .flatMap((p) => p.lists)
+                      .find((l) => l.id === listId);
+                    if (sourceList) {
+                      sourceItems = sourceList.items;
+                    }
+                  }
+
+                  if (!sourceItems) return;
+                  const draggedItem = sourceItems.find((i) => i.id === itemId);
+                  if (!draggedItem) return;
+
+                  sourceItems = sourceItems.filter((i) => i.id !== itemId);
+                  if (isSubListItem) {
+                    sourceList.items = sourceItems;
+                  } else {
+                    sourceList.items = sourceItems;
+                  }
+
+                  const placeholder =
+                    subListItems.querySelector(".drop-placeholder");
+                  if (placeholder) {
+                    const items = Array.from(subListItems.children);
+                    const placeholderIndex = items.indexOf(placeholder);
+
+                    subList.items.splice(placeholderIndex, 0, draggedItem);
+                  } else {
+                    subList.items.push(draggedItem);
+                  }
+                }
+
+                saveData();
+                renderSingleProject(project);
+              } catch (err) {
+                console.error("Error during drag and drop:", err);
+              }
+            });
+
+            subListDiv.addEventListener("dragstart", (e) => {
+              e.stopPropagation();
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData(
+                "text/plain",
+                JSON.stringify({
+                  subListId: subList.id,
+                  parentListId: list.id,
+                  type: "sublist",
+                  sourceListId: list.id,
+                })
+              );
+              subListDiv.classList.add("dragging");
+              removePlaceholders();
+            });
+
+            subListDiv.addEventListener("dragend", () => {
+              subListDiv.classList.remove("dragging");
+              removePlaceholders();
+            });
+
+            subListDiv.appendChild(subListItems);
+            listItemsContainer.appendChild(subListDiv);
+          });
+        }
+
+        listDiv.appendChild(header);
+        listDiv.appendChild(listItemsContainer);
+        container.appendChild(listDiv);
+      }
+
+      function createListItem(list, item, container, project) {
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("list-item");
+        itemDiv.setAttribute("draggable", "true");
+        itemDiv.setAttribute("data-item-id", item.id);
+
+        const itemContent = document.createElement("div");
+        if (item.type === "todo") {
+          itemDiv.classList.add("todo-item");
+          itemContent.classList.add("item-name");
+          if (item.completed) {
+            itemContent.classList.add("strikethrough");
+          }
+        }
+
+        if (item.backgroundColor) {
+          itemDiv.style.backgroundColor = item.backgroundColor;
+        }
+
+        if (item.type === "todo" && item.dueDate) {
+          const dueDate = new Date(item.dueDate);
+          const localDueDate = new Date(
+            dueDate.getUTCFullYear(),
+            dueDate.getUTCMonth(),
+            dueDate.getUTCDate()
+          );
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+
+          const diffTime = localDueDate - now;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (diffTime < 0) {
+            itemDiv.classList.add("overdue");
+          } else if (diffDays <= 2) {
+            itemDiv.classList.add("due-soon");
+          }
+
+          const calendarTag = document.createElement("span");
+          calendarTag.classList.add("due-date-tag");
+
+          const month = localDueDate
+            .toLocaleString("default", { month: "short" })
+            .toUpperCase();
+          const day = localDueDate.getDate();
+
+          calendarTag.innerHTML = `
+          <span class="month">${month}</span>
+          <span class="day">${day}</span>
+        `;
+
+          itemDiv.appendChild(calendarTag);
+        }
+
+        const hoverMenu = document.createElement("div");
+        hoverMenu.classList.add("item-hover-menu");
+
+        const editorBtn = document.createElement("button");
+        editorBtn.innerHTML = '<i class="fas fa-pen-to-square"></i>';
+        editorBtn.title = "Open Editor";
+        editorBtn.addEventListener("click", () => openEditor(item));
+
+        const toggleTypeBtn = document.createElement("button");
+        toggleTypeBtn.innerHTML = '<i class="fa-solid fa-shuffle"></i>';
+        toggleTypeBtn.title =
+          item.type === "todo" ? "Convert to Note" : "Convert to Todo";
+        toggleTypeBtn.addEventListener("click", () => {
+          if (item.type === "todo") {
+            item.type = "note";
+            delete item.completed;
+          } else {
+            item.type = "todo";
+            item.completed = false;
+          }
+          saveData();
+          renderSingleProject(project);
+        });
+
+        const colorInput = document.createElement("input");
+        colorInput.type = "text";
+        colorInput.setAttribute("data-coloris", "");
+        colorInput.style.display = "none";
+
+        const colorPickerBtn = document.createElement("button");
+        colorPickerBtn.innerHTML = '<i class="fas fa-fill-drip"></i>';
+        colorPickerBtn.title = "Change Color";
+        colorPickerBtn.addEventListener("click", () => {
+          colorInput.click();
+        });
+
+        colorInput.addEventListener("change", (event) => {
+          const color = event.target.value;
+          item.backgroundColor = color;
+          itemDiv.style.backgroundColor = color;
+          saveData();
+        });
+
+        if (item.type === "todo") {
+          const timerControls = document.createElement("div");
+          timerControls.classList.add("time-tracker");
+
+          const playPauseBtn = document.createElement("button");
+          playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+          playPauseBtn.title = "Start Timer";
+
+          const timerDisplay = document.createElement("span");
+          timerDisplay.classList.add("elapsed-time");
+          timerDisplay.textContent = formatTime(item.elapsedTime || 0);
+
+          playPauseBtn.addEventListener("click", () => {
+            if (activeTimers.has(item.id)) {
+              stopTimer(item);
+              playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+              playPauseBtn.title = "Start Timer";
+            } else {
+              startTimer(item, timerDisplay);
+              playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+              playPauseBtn.title = "Pause Timer";
+            }
+          });
+
+          timerControls.appendChild(playPauseBtn);
+          timerControls.appendChild(timerDisplay);
+          hoverMenu.appendChild(timerControls);
+        }
+
+        const deleteButton = createDeleteButton(() => {
+          list.items = list.items.filter((i) => i.id !== item.id);
+          saveData();
+          renderSingleProject(project);
+        });
+
+        hoverMenu.appendChild(editorBtn);
+        hoverMenu.appendChild(toggleTypeBtn);
+        hoverMenu.appendChild(colorPickerBtn);
+        hoverMenu.appendChild(colorInput);
+        hoverMenu.appendChild(deleteButton);
+
+        itemDiv.appendChild(hoverMenu);
+
+        if (item.type === "todo") {
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = item.completed;
+          checkbox.classList.add("todo-checkbox");
+          checkbox.addEventListener("change", () => {
+            item.completed = checkbox.checked;
+            itemContent.classList.toggle("strikethrough", item.completed);
+            if (item.completed) {
+              stopTimer(item);
+              addToHistory(item);
+              item.completedAt = new Date().toISOString();
+            } else {
+              delete item.completedAt;
+            }
+            saveData();
+          });
+
+          itemDiv.appendChild(checkbox);
+        }
+
+        itemContent.innerHTML = formatTextWithLinks(
+          stripHtml(item.content || item.name || "").substring(0, 100) +
+            (stripHtml(item.content || item.name || "").length > 100
+              ? "..."
+              : "")
+        );
+
+        itemContent.addEventListener("click", () => openEditor(item));
+        itemContent.style.cursor = "pointer";
+
+        itemDiv.appendChild(itemContent);
+        container.appendChild(itemDiv);
+
+        setupDragAndDrop(itemDiv, item, list, container, project);
+      }
+
+      function setupDragAndDrop(itemDiv, item, list, container, project) {
+        itemDiv.addEventListener("dragstart", (e) => {
+          e.stopPropagation();
+          e.dataTransfer.effectAllowed = "move";
+          const isSubListItem = list.isSubList || false;
+          const parentListId = list.parentListId || list.id;
+          e.dataTransfer.setData(
+            "text/plain",
+            JSON.stringify({
+              itemId: item.id,
+              listId: list.id,
+              isSubListItem: isSubListItem,
+              parentListId: parentListId,
+              type: "item",
+            })
+          );
+          itemDiv.classList.add("dragging");
+          removePlaceholders();
+        });
+
+        itemDiv.addEventListener("dragend", (e) => {
+          e.stopPropagation();
+          itemDiv.classList.remove("dragging");
+          removePlaceholders();
+          document.querySelectorAll(".shift-up, .shift-down").forEach((el) => {
+            el.classList.remove("shift-up", "shift-down");
+          });
+        });
+
+        itemDiv.addEventListener("dragover", handleDragOver);
+        itemDiv.addEventListener("dragleave", handleDragLeave);
+        itemDiv.addEventListener("drop", (e) =>
+          handleDrop(e, list, container, project)
+        );
+      }
+
+      function formatDueDate(dueDate) {
+        const now = new Date();
+        const due = new Date(dueDate);
+        const diffTime = due - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffTime < 0) {
+          return "Overdue";
+        } else if (diffDays === 0) {
+          return "Due today";
+        } else if (diffDays === 1) {
+          return "Due tomorrow";
+        } else {
+          return `Due in ${diffDays} days`;
+        }
+      }
+
+      function createPlaceholder() {
+        const placeholder = document.createElement("div");
+        placeholder.classList.add("drop-placeholder");
+        return placeholder;
+      }
+
+      function removePlaceholders() {
+        document
+          .querySelectorAll(".drop-placeholder")
+          .forEach((el) => el.remove());
+      }
+
+      function renderProjects() {
+        projectsContainer.innerHTML = "";
+        appData.forEach((project) => {
+          createProject(project);
+        });
+
+        Coloris({
+          theme: "default",
+          themeMode: currentTheme,
+          formatToggle: false,
+          clearButton: true,
+          alpha: false,
+          wrap: true,
+          closeButton: true,
+          swatches: [
+            "#264653",
+            "#2a9d8f",
+            "#e9c46a",
+            "#f4a261",
+            "#e76f51",
+            "#ef476f",
+            "#ffd166",
+            "#06d6a0",
+            "#118ab2",
+            "#073b4c",
+          ],
+        });
+      }
+
+      addProjectBtn.addEventListener("click", () => showProjectForm(null));
+
+      importDataBtn.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+
+        input.addEventListener("change", (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const importedData = JSON.parse(e.target.result);
+                if (Array.isArray(importedData)) {
+                  appData = importedData;
+                  saveData();
+                  renderProjects();
+
+                  const originalContent = importDataBtn.innerHTML;
+
+                  importDataBtn.innerHTML = "✓ Imported";
+                  importDataBtn.style.backgroundColor = "#28a745";
+
+                  setTimeout(() => {
+                    importDataBtn.innerHTML =
+                      '<i class="fa-solid fa-file-import"></i>';
+                    importDataBtn.style.backgroundColor = "";
+                  }, 2000);
+                } else {
+                  const originalContent = importDataBtn.innerHTML;
+
+                  importDataBtn.innerHTML = "⚠ Invalid Format";
+                  importDataBtn.style.backgroundColor = "#dc3545";
+
+                  setTimeout(() => {
+                    importDataBtn.innerHTML = originalContent;
+                    importDataBtn.style.backgroundColor = "";
+                  }, 2000);
+                }
+              } catch (error) {
+                const originalContent = importDataBtn.innerHTML;
+
+                importDataBtn.innerHTML = "⚠ Invalid File";
+                importDataBtn.style.backgroundColor = "#dc3545";
+
+                setTimeout(() => {
+                  importDataBtn.innerHTML = originalContent;
+                  importDataBtn.style.backgroundColor = "";
+                }, 2000);
+              }
+            };
+            reader.readAsText(file);
+          }
+        });
+
+        input.click();
+      });
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        localStorage.setItem("theme", theme);
+        currentTheme = theme;
+
+        const themeToggleBtnInMenu = document.getElementById("themeToggleBtn");
+        if (themeToggleBtnInMenu) {
+          themeToggleBtnInMenu.innerHTML =
+            theme === "dark"
+              ? '<i class="fas fa-sun"></i>'
+              : '<i class="fas fa-moon"></i>';
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        Coloris({
+          theme: "default",
+          themeMode: currentTheme,
+          formatToggle: false,
+          clearButton: true,
+          alpha: false,
+          wrap: true,
+          closeButton: true,
+          swatches: [
+            "#264653",
+            "#2a9d8f",
+            "#e9c46a",
+            "#f4a261",
+            "#e76f51",
+            "#ef476f",
+            "#ffd166",
+            "#06d6a0",
+            "#118ab2",
+            "#073b4c",
+          ],
+        });
+
+        renderProjects();
+      });
+
+      function stripHtml(html) {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+      }
+
+      function openEditor(item) {
+        const popup = document.querySelector(".editor-popup");
+        const overlay = document.querySelector(".editor-overlay");
+        const closeBtn = popup.querySelector(".close-btn");
+        const dueDateContainer = popup.querySelector(".due-date-container");
+        const dueDateInput = popup.querySelector("#dueDateInput");
+        const clearDueDate = popup.querySelector("#clearDueDate");
+        const dueDateInfo = popup.querySelector(".due-date-info");
+        const headerTitle = popup.querySelector(".editor-header h3");
+
+        $("#summernote").empty();
+        if ($("#summernote").data("summernote")) {
+          $("#summernote").summernote("destroy");
+        }
+
+        dueDateContainer.style.display = item.type === "todo" ? "flex" : "none";
+        headerTitle.textContent =
+          item.type === "todo" ? "Edit Todo" : "Edit Note";
+
+        if (item.type === "todo" && item.dueDate) {
+          dueDateInput.value = item.dueDate.slice(0, 10);
+          updateDueDateInfo(item.dueDate);
+        } else {
+          dueDateInput.value = "";
+          dueDateInfo.textContent = "";
+        }
+
+        $("#summernote").summernote({
+          height: "100%",
+          minHeight: null,
+          maxHeight: null,
+          placeholder: "Start typing...",
+          focus: true,
+          callbacks: {
+            onInit: function () {
+              if (!item.isNew) {
+                $("#summernote").summernote(
+                  "code",
+                  item.content || item.name || ""
+                );
+              } else {
+                $("#summernote").summernote("code", "");
+              }
+
+              if (item.isNew && item.type === "todo" && dueDateInput.value) {
+                const date = new Date(dueDateInput.value + "T00:00:00");
+                item.dueDate = date.toISOString();
+                updateDueDateInfo(item.dueDate);
+              }
+
+              setTimeout(() => {
+                $("#summernote").summernote("focus");
+                $(".note-editable").focus();
+
+                const editableDiv = $(".note-editable")[0];
+                const range = document.createRange();
+                const sel = window.getSelection();
+
+                range.setStart(editableDiv, 0);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+
+                $(".note-editor").css("display", "flex");
+                $(".note-editing-area").css("display", "flex");
+                $("#summernote").css("display", "flex");
+              }, 100);
+            },
+            onChange: function (contents) {
+              item.content = contents;
+
+              const project = appData.find((p) =>
+                p.lists.some(
+                  (l) =>
+                    l.items.some((i) => i.id === item.id) ||
+                    (l.subLists &&
+                      l.subLists.some((sl) =>
+                        sl.items.some((i) => i.id === item.id)
+                      ))
+                )
+              );
+
+              if (project) {
+                saveData();
+                const itemElement = document.querySelector(
+                  `[data-item-id="${item.id}"] .item-name`
+                );
+                if (itemElement) {
+                  itemElement.innerHTML = formatTextWithLinks(
+                    stripHtml(contents).substring(0, 100) +
+                      (stripHtml(contents).length > 100 ? "..." : "")
+                  );
+                }
+              }
+            },
+          },
+          spellCheck: true,
+          disableGrammar: false,
+          styleTags: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
+          prettifyHtml: false,
+          emptyPara: "",
+        });
+
+        popup.style.display = "flex";
+        overlay.style.display = "block";
+
+        dueDateInput.addEventListener("change", function () {
+          if (this.value) {
+            const selectedDate = this.value + "T00:00:00Z";
+            const date = new Date(selectedDate);
+            item.dueDate = date.toISOString();
+            updateDueDateInfo(item.dueDate);
+
+            const project = appData.find((p) =>
+              p.lists.some(
+                (l) =>
+                  l.items.some((i) => i.id === item.id) ||
+                  (l.subLists &&
+                    l.subLists.some((sl) =>
+                      sl.items.some((i) => i.id === item.id)
+                    ))
+              )
+            );
+
+            if (project) {
+              saveData();
+              renderSingleProject(project);
+            }
+          }
+          saveData();
+        });
+
+        clearDueDate.addEventListener("click", function () {
+          dueDateInput.value = "";
+          delete item.dueDate;
+          dueDateInfo.textContent = "";
+
+          const project = appData.find((p) =>
+            p.lists.some(
+              (l) =>
+                l.items.some((i) => i.id === item.id) ||
+                (l.subLists &&
+                  l.subLists.some((sl) =>
+                    sl.items.some((i) => i.id === item.id)
+                  ))
+            )
+          );
+
+          if (project) {
+            saveData();
+            renderSingleProject(project);
+          }
+        });
+
+        const closeEditor = () => {
+          const content = $("#summernote").summernote("code");
+          const strippedContent = stripHtml(content).trim();
+
+          if (item.isNew && strippedContent !== "") {
+            const newItem = {
+              id: item.id,
+              name: strippedContent.substring(0, 50),
+              type: item.type,
+              content: content,
+              completed: item.type === "todo" ? false : undefined,
+            };
+
+            if (item.dueDate) {
+              newItem.dueDate = item.dueDate;
+            }
+
+            if (item.list) {
+              item.list.items.push(newItem);
+              saveData();
+              const project = appData.find((p) =>
+                p.lists.some((l) => l.id === item.list.id)
+              );
+              if (project) {
+                renderSingleProject(project);
+              }
+            }
+          }
+
+          $("#summernote").empty();
+          $("#summernote").summernote("destroy");
+          popup.style.display = "none";
+          overlay.style.display = "none";
+        };
+
+        closeBtn.onclick = closeEditor;
+        overlay.onclick = closeEditor;
+      }
+
+      function updateDueDateInfo(dueDate) {
+        const dueDateInfo = document.querySelector(".due-date-info");
+        const now = new Date();
+        const due = new Date(dueDate);
+        const diffTime = due - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffTime < 0) {
+          dueDateInfo.textContent = "Overdue";
+          dueDateInfo.style.color = "#ff4444";
+        } else if (diffDays === 0) {
+          dueDateInfo.textContent = "Due today";
+          dueDateInfo.style.color = "#ffd700";
+        } else if (diffDays === 1) {
+          dueDateInfo.textContent = "Due tomorrow";
+          dueDateInfo.style.color = "#ffd700";
+        } else {
+          dueDateInfo.textContent = `Due in ${diffDays} days`;
+          dueDateInfo.style.color = "";
+        }
+      }
+
+      function formatTextWithLinks(text) {
+        if (!text) return "";
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, (url) => {
+          const safeUrl = url
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+          return `<a href="${safeUrl}" class="item-link" target="_blank">${safeUrl}</a>`;
+        });
+      }
+
+      function formatTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return `${hrs.toString().padStart(2, "0")}:${mins
+          .toString()
+          .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      function startTimer(item, timerDisplay) {
+        if (activeTimers.has(item.id)) return;
+
+        if (!item.startTime) {
+          item.startTime = new Date().toISOString();
+        }
+
+        const startTime = Date.now() - (item.elapsedTime || 0) * 1000;
+        const timer = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          item.elapsedTime = elapsed;
+          timerDisplay.textContent = formatTime(elapsed);
+          saveData();
+        }, 1000);
+
+        activeTimers.set(item.id, timer);
+      }
+
+      function stopTimer(item) {
+        const timer = activeTimers.get(item.id);
+        if (timer) {
+          clearInterval(timer);
+          activeTimers.delete(item.id);
+        }
+      }
+
+      function addToHistory(item) {
+        taskHistory.push({
+          task: item.content || item.name,
+          timeTaken: item.elapsedTime || 0,
+          startedAt: item.startTime || new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+        });
+        localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString(navigator.language, {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      }
+
+      function renderHistory(tbody, filter = "") {
+        const filteredHistory = taskHistory.filter((entry) =>
+          stripHtml(entry.task).toLowerCase().includes(filter.toLowerCase())
+        );
+
+        if (filteredHistory.length === 0) {
+          tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; font-size: 1.1em; color: #666;">
+              ${
+                filter
+                  ? "No tasks found matching your search. Try something else?"
+                  : "No completed tasks yet. Time to get productive! 🚀"
+              }
+            </td>
+          </tr>
+        `;
+        } else {
+          tbody.innerHTML = filteredHistory
+            .map((entry, index) => {
+              const plainText = stripHtml(entry.task);
+
+              let taskDisplay;
+              if (plainText.length > 100) {
+                taskDisplay = `
+                <span class="truncated-text" data-index="${index}">${plainText.substring(
+                  0,
+                  100
+                )}...</span>
+                <span class="full-text" data-index="${index}" style="display: none;">${plainText}</span>
+                <button class="read-more-btn" data-index="${index}">Read More</button>
+              `;
+              } else {
+                taskDisplay = plainText;
+              }
+
+              return `
+              <tr data-index="${index}">
+                <td>${taskDisplay}</td>
+                <td>${formatDate(entry.startedAt)}</td>
+                <td>${formatDate(entry.completedAt)}</td>
+                <td>${formatTime(entry.timeTaken)}</td>
+                <td class="action-column">
+                  <button class="delete-history-btn" title="Delete Entry">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
+            })
+            .join("");
+
+          tbody.querySelectorAll(".read-more-btn").forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const index = this.getAttribute("data-index");
+              const truncatedText = tbody.querySelector(
+                `.truncated-text[data-index="${index}"]`
+              );
+              const fullText = tbody.querySelector(
+                `.full-text[data-index="${index}"]`
+              );
+
+              if (truncatedText.style.display !== "none") {
+                truncatedText.style.display = "none";
+                fullText.style.display = "inline";
+                this.textContent = "Show Less";
+              } else {
+                truncatedText.style.display = "inline";
+                fullText.style.display = "none";
+                this.textContent = "Read More";
+              }
+            });
+          });
+
+          tbody.querySelectorAll(".delete-history-btn").forEach((btn) => {
+            btn.addEventListener("click", function () {
+              const row = this.closest("tr");
+              const index = parseInt(row.dataset.index);
+              taskHistory.splice(index, 1);
+              localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
+              renderHistory(
+                tbody,
+                document.querySelector(".history-search").value
+              );
+            });
+          });
+        }
+      }
+
+      function clearHistory() {
+        if (
+          confirm(
+            "Are you sure you want to clear all task history? This cannot be undone."
+          )
+        ) {
+          taskHistory = [];
+          localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
+          const tbody = document.querySelector(".history-modal tbody");
+          renderHistory(tbody);
+        }
+      }
+
+      function showHistory() {
+        const modal = document.querySelector(".history-modal");
+        const overlay = document.querySelector(".history-overlay");
+        const searchInput = modal.querySelector(".history-search");
+        const tbody = modal.querySelector("tbody");
+        const cleanupBtn = modal.querySelector(".cleanup-btn");
+
+        searchInput.value = "";
+        searchInput.addEventListener("input", (e) =>
+          renderHistory(tbody, e.target.value)
+        );
+        cleanupBtn.addEventListener("click", clearHistory);
+        renderHistory(tbody);
+
+        modal.style.display = "block";
+        overlay.style.display = "block";
+
+        const closeModal = () => {
+          modal.style.display = "none";
+          overlay.style.display = "none";
+        };
+
+        modal.querySelector(".close-btn").onclick = closeModal;
+        overlay.onclick = closeModal;
+      }
+
+      historyBtn.addEventListener("click", showHistory);
+
+      function showProjectForm(projectToEdit = null) {
+        const form = document.querySelector(".project-form");
+        const overlay = document.querySelector(".form-overlay");
+        const milestoneEntries = document.getElementById("milestoneEntries");
+        const projectNameInput = document.getElementById("projectName");
+        const tagsInput = form.querySelector(".tags-input");
+        const tagColorPicker = form.querySelector(".tag-color-picker");
+        const colorPreview = form.querySelector(".color-preview");
+        const submitBtn = document.querySelector(".submit-btn");
+
+        const newColorPreview = colorPreview.cloneNode(true);
+        colorPreview.parentNode.replaceChild(newColorPreview, colorPreview);
+
+        newColorPreview.addEventListener("click", () => {
+          const rect = newColorPreview.getBoundingClientRect();
+          const picker = document.querySelector(".clr-picker");
+          if (picker) {
+            requestAnimationFrame(() => {
+              picker.style.position = "fixed";
+              picker.style.left = `${rect.left}px`;
+              picker.style.top = `${rect.bottom + 5}px`;
+              picker.style.margin = "0";
+            });
+          }
+          tagColorPicker.click();
+        });
+
+        tagColorPicker.addEventListener("change", (e) => {
+          newColorPreview.style.backgroundColor = e.target.value;
+        });
+
+        form.querySelector("h2").textContent = projectToEdit
+          ? "Edit Project"
+          : "New Project";
+        submitBtn.title = projectToEdit ? "Save Changes" : "Create Project";
+
+        projectNameInput.value = "";
+        tagsInput.value = "";
+        const defaultColor = "#f4a261";
+        tagColorPicker.value = defaultColor;
+        colorPreview.style.backgroundColor = defaultColor;
+        milestoneEntries.innerHTML = "";
+
+        if (projectToEdit) {
+          projectNameInput.value = projectToEdit.name;
+          if (projectToEdit.tags) {
+            tagsInput.value = projectToEdit.tags.join(", ");
+            const projectColor = projectToEdit.tagColor || defaultColor;
+            tagColorPicker.value = projectColor;
+            colorPreview.style.backgroundColor = projectColor;
+          }
+
+          if (projectToEdit.milestones) {
+            projectToEdit.milestones.forEach((milestone) => {
+              const entry = document.createElement("div");
+              entry.classList.add("milestone-entry");
+
+              entry.innerHTML = `
+              <input type="text" class="milestone-name" placeholder="Milestone name" value="${milestone.name}">
+              <input type="date" class="milestone-date" value="${milestone.date}">
+              <span class="remove-milestone" title="Remove Milestone">×</span>
+            `;
+
+              entry
+                .querySelector(".remove-milestone")
+                .addEventListener("click", () => {
+                  entry.remove();
+                });
+
+              milestoneEntries.appendChild(entry);
+            });
+          }
+        }
+
+        if (milestoneEntries.children.length === 0) {
+          addMilestoneEntry();
+        }
+
+        form.style.display = "block";
+        overlay.style.display = "block";
+
+        submitBtn.onclick = () => {
+          const projectName = projectNameInput.value.trim();
+          if (!projectName) return;
+
+          const tags = tagsInput.value
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0);
+          const tagColor = tagColorPicker.value;
+
+          const milestones = Array.from(
+            document.querySelectorAll(".milestone-entry")
+          )
+            .map((entry) => ({
+              name: entry.querySelector(".milestone-name").value.trim(),
+              date: entry.querySelector(".milestone-date").value,
+            }))
+            .filter((m) => m.name && m.date);
+
+          if (projectToEdit) {
+            projectToEdit.name = projectName;
+            projectToEdit.tags = tags.length > 0 ? tags : undefined;
+            projectToEdit.tagColor = tagColor;
+            projectToEdit.milestones =
+              milestones.length > 0 ? milestones : undefined;
+          } else {
+            const newProject = {
+              id: Date.now(),
+              name: projectName,
+              tags: tags.length > 0 ? tags : undefined,
+              tagColor: tagColor,
+              lists: [],
+              milestones: milestones.length > 0 ? milestones : undefined,
+            };
+            appData.unshift(newProject);
+          }
+
+          saveData();
+          renderProjects();
+
+          form.style.display = "none";
+          overlay.style.display = "none";
+        };
+      }
+
+      function addMilestoneEntry() {
+        const container = document.getElementById("milestoneEntries");
+        const entry = document.createElement("div");
+        entry.classList.add("milestone-entry");
+
+        entry.innerHTML = `
+        <input type="text" class="milestone-name" placeholder="Milestone name">
+        <input type="date" class="milestone-date">
+        <span class="remove-milestone" title="Remove Milestone">×</span>
+      `;
+
+        entry
+          .querySelector(".remove-milestone")
+          .addEventListener("click", () => {
+            entry.remove();
+          });
+
+        container.appendChild(entry);
+      }
+
+      function createTimeline(project) {
+        if (!project.milestones || project.milestones.length === 0) return;
+
+        const timelineContainer = document.createElement("div");
+        timelineContainer.classList.add("timeline-container");
+
+        const timelineDiv = document.createElement("div");
+        timelineDiv.classList.add("timeline");
+        timelineDiv.id = `timeline-${project.id}`;
+
+        timelineContainer.appendChild(timelineDiv);
+
+        timelineContainer.addEventListener("dblclick", () => {
+          showProjectForm(project);
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.classList.add("timeline-delete-btn");
+        deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+        deleteBtn.title = "Delete Timeline";
+
+        let confirmTimeout;
+        let isConfirming = false;
+
+        deleteBtn.addEventListener("click", () => {
+          if (isConfirming) {
+            clearTimeout(confirmTimeout);
+            delete project.milestones;
+            saveData();
+            renderSingleProject(project);
+          } else {
+            isConfirming = true;
+            deleteBtn.innerHTML = "Sure?";
+            deleteBtn.title = "Click again to confirm deletion";
+            deleteBtn.classList.add("delete-confirm");
+
+            confirmTimeout = setTimeout(() => {
+              isConfirming = false;
+              deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+              deleteBtn.title = "Delete Timeline";
+              deleteBtn.classList.remove("delete-confirm");
+            }, 5000);
+          }
+        });
+
+        timelineContainer.appendChild(deleteBtn);
+
+        const formatDate = (date) => {
+          return new Date(date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        };
+
+        const dates = project.milestones.map((m) => new Date(m.date));
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+
+        minDate.setDate(minDate.getDate() - 14);
+        maxDate.setDate(maxDate.getDate() + 14);
+
+        const items = new DataSet(
+          project.milestones.map((milestone, index) => ({
+            id: index,
+            content: milestone.name,
+            start: milestone.date,
+            title: `${milestone.name}<br>${formatDate(milestone.date)}`,
+          }))
+        );
+
+        const options = {
+          height: "100px",
+          min: minDate,
+          max: maxDate,
+          zoomable: false,
+          margin: { item: 10 },
+          orientation: { axis: "top" },
+          selectable: false,
+          showTooltips: true,
+          stack: false,
+          horizontalScroll: false,
+          timeAxis: {
+            scale: "week",
+            step: 1,
+          },
+          align: "center",
+          type: "point",
+          template: function (item) {
+            return `<div class="vis-item-content">${item.content}</div>`;
+          },
+          format: {
+            minorLabels: {
+              week: "",
+              month: "MMM",
+            },
+            majorLabels: {
+              month: "YYYY",
+            },
+          },
+          snap: null,
+          verticalScroll: false,
+          showCurrentTime: true,
+          showMajorLabels: true,
+          showMinorLabels: true,
+          width: "100%",
+          autoResize: true,
+          start: minDate,
+          end: maxDate,
+        };
+
+        const timeline = new Timeline(timelineDiv, items, options);
+        timeline.fit();
+
+        return timelineContainer;
+      }
+
+      document
+        .querySelector(".add-milestone-btn")
+        .addEventListener("click", addMilestoneEntry);
+
+      document.querySelector(".cancel-btn").addEventListener("click", () => {
+        document.querySelector(".project-form").style.display = "none";
+        document.querySelector(".form-overlay").style.display = "none";
+      });
+
+      function setupAutoBackup() {
+        try {
+          const data = JSON.stringify(appData, null, 2);
+          const now = new Date();
+          const timestamp =
+            now.getFullYear() +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            String(now.getDate()).padStart(2, "0") +
+            "T" +
+            String(now.getHours()).padStart(2, "0") +
+            String(now.getMinutes()).padStart(2, "0") +
+            String(now.getSeconds()).padStart(2, "0");
+
+          const filename = `kanban-backup-${timestamp}.json`;
+          const autoBackupBtn = document.getElementById("autoBackupBtn");
+
+          const blob = new Blob([data], { type: "application/json" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+
+          autoBackupBtn.innerHTML = "✓ Exported";
+          autoBackupBtn.style.backgroundColor = "#28a745";
+
+          updateBackupStatus(now);
+
+          setTimeout(() => {
+            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+            autoBackupBtn.style.backgroundColor = "";
+          }, 2000);
+        } catch (err) {
+          console.error("Error during backup:", err);
+          const autoBackupBtn = document.getElementById("autoBackupBtn");
+          autoBackupBtn.innerHTML = "⚠ Invalid File";
+          autoBackupBtn.style.backgroundColor = "#dc3545";
+
+          setTimeout(() => {
+            autoBackupBtn.innerHTML = '<i class="fa-solid fa-file-export"></i>';
+            autoBackupBtn.style.backgroundColor = "";
+          }, 2000);
+        }
+      }
+
+      function scheduleBackupReminder() {
+        if (!window.backupReminderScheduled) {
+          window.backupReminderScheduled = true;
+
+          const autoBackupBtn = document.getElementById("autoBackupBtn");
+          if (autoBackupBtn) {
+            autoBackupBtn.classList.add("backup-nudge");
+            autoBackupBtn.title = "⚠️ Backup needed - Click to perform backup";
+            autoBackupBtn.innerHTML = "⚠️ Backup Needed";
+          }
+        }
+      }
+
+      let autoBackupInterval;
+
+      function updateTopMenu() {
+        const autoBackupBtn = document.getElementById("autoBackupBtn");
+        if (autoBackupBtn) {
+          autoBackupBtn.title = "Export Data";
+          autoBackupBtn.addEventListener("click", setupAutoBackup);
+        }
+      }
+
+      async function initializeApp() {
+        console.log("Initializing app...");
+
+        const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
+
+        cleanupCompletedTodos();
+        renderProjects();
+        updateTopMenu();
+
+        if (appData.length > 0) {
+          const lastBackupDate = lastBackupTime
+            ? new Date(
+                lastBackupTime.replace(
+                  /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}:\d{2}:\d{2})/,
+                  "$3-$2-$1T$4"
+                )
+              )
+            : null;
+          const now = new Date();
+
+          if (
+            !lastBackupDate ||
+            now.getTime() - lastBackupDate.getTime() > 60 * 60 * 1000
+          ) {
+            nudgeBackup();
+          } else {
+            const timeUntilNextNudge =
+              60 * 60 * 1000 - (now.getTime() - lastBackupDate.getTime());
+            setTimeout(nudgeBackup, timeUntilNextNudge);
+          }
+        }
+
+        cleanupInvalidDates();
+        initTutorial();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initializeApp);
+      } else {
+        initializeApp();
+      }
+
+      function cleanupInvalidDates() {
+        const lastBackupStr = localStorage.getItem(LAST_BACKUP_KEY);
+        if (!lastBackupStr) return;
+
+        try {
+          // Parse the date directly using Date constructor since it's in a standard format
+          const lastBackupDate = new Date(lastBackupStr);
+          const now = new Date();
+
+          // Add 1 minute buffer to account for slight time differences
+          const futureLimit = new Date(now.getTime() + 60000);
+
+          if (isNaN(lastBackupDate.getTime()) || lastBackupDate > futureLimit) {
+            console.log("Invalid backup date detected:", {
+              lastBackupStr,
+              parsed: lastBackupDate,
+              now: now,
+            });
+            localStorage.removeItem(LAST_BACKUP_KEY);
+          }
+        } catch (err) {
+          console.error("Error parsing backup date:", err);
+          localStorage.removeItem(LAST_BACKUP_KEY);
+        }
+      }
+
+      function checkStorageIntegrity() {
+        console.log("Checking storage integrity...");
+        const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
+
+        if (!lastBackupTime) {
+          console.log("No last backup time found");
+          nudgeBackup();
+        }
+      }
+
+      checkStorageIntegrity();
+
+      function cleanupCompletedTodos() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let cleanupPerformed = false;
+
+        appData.forEach((project) => {
+          project.lists.forEach((list) => {
+            if (list.items) {
+              const originalLength = list.items.length;
+              list.items = list.items.filter((item) => {
+                if (!item) return false;
+                if (item.type !== "todo") return true;
+                if (!item.completed) return true;
+
+                if (item.completedAt) {
+                  const completionDate = new Date(item.completedAt);
+                  return completionDate >= today;
+                }
+                return true;
+              });
+              if (list.items.length < originalLength) cleanupPerformed = true;
+            }
+
+            if (list.subLists) {
+              list.subLists.forEach((subList) => {
+                if (subList.items) {
+                  const originalLength = subList.items.length;
+                  subList.items = subList.items.filter((item) => {
+                    if (!item) return false;
+                    if (item.type !== "todo") return true;
+                    if (!item.completed) return true;
+
+                    if (item.completedAt) {
+                      const completionDate = new Date(item.completedAt);
+                      return completionDate >= today;
+                    }
+                    return true;
+                  });
+                  if (subList.items.length < originalLength)
+                    cleanupPerformed = true;
+                }
+              });
+            }
+          });
+        });
+
+        if (cleanupPerformed) {
+          saveData();
+          renderProjects();
+        }
+      }
+
+      function nudgeBackup() {
+        const autoBackupBtn = document.getElementById("autoBackupBtn");
+        if (
+          autoBackupBtn &&
+          !autoBackupBtn.classList.contains("backup-nudge")
+        ) {
+          autoBackupBtn.classList.add("backup-nudge");
+          autoBackupBtn.title = "⚠️ Please backup your data!";
+          autoBackupBtn.innerHTML = "⚠️ Backup Needed";
+
+          autoBackupBtn.addEventListener(
+            "click",
+            () => {
+              autoBackupBtn.classList.remove("backup-nudge");
+              autoBackupBtn.innerHTML =
+                '<i class="fa-solid fa-file-export"></i>';
+              setTimeout(nudgeBackup, 60 * 60 * 1000);
+            },
+            { once: true }
+          );
+        }
+      }
+
+      function renderSingleProject(project) {
+        const projectIndex = appData.findIndex((p) => p.id === project.id);
+        if (projectIndex === -1) return;
+
+        const existingProject = Array.from(projectsContainer.children).find(
+          (el) =>
+            el.querySelector(".project-header .editable").textContent ===
+            project.name
+        );
+        const currentIndex = Array.from(projectsContainer.children).indexOf(
+          existingProject
+        );
+
+        if (existingProject) {
+          if (currentIndex !== projectIndex) {
+            const timelineContainer = existingProject.querySelector(
+              ".timeline-container"
+            );
+            const nextSibling =
+              projectsContainer.children[projectIndex] || null;
+            projectsContainer.insertBefore(existingProject, nextSibling);
+            return;
+          }
+
+          const timelineContainer = existingProject.querySelector(
+            ".timeline-container"
+          );
+          existingProject.remove();
+
+          const newProjectElement = document.createElement("div");
+          createProject(project, newProjectElement);
+
+          if (timelineContainer) {
+            const newTimeline = newProjectElement.querySelector(
+              ".timeline-container"
+            );
+            if (newTimeline) {
+              newTimeline.replaceWith(timelineContainer);
+            }
+          }
+
+          const nextSibling = projectsContainer.children[projectIndex] || null;
+          projectsContainer.insertBefore(newProjectElement, nextSibling);
+          return;
+        }
+
+        const newProjectElement = document.createElement("div");
+        createProject(project, newProjectElement);
+        const nextSibling = projectsContainer.children[projectIndex] || null;
+        projectsContainer.insertBefore(newProjectElement, nextSibling);
+      }
+
+      function initTutorial() {
+        if (localStorage.getItem("tutorialShown")) {
+          return;
+        }
+
+        if (appData.length === 0) {
+          const sampleProject = {
+            id: Date.now(),
+            name: "My First Project",
+            lists: [
+              {
+                id: Date.now() + 1,
+                name: "To Do",
+                items: [
+                  {
+                    id: Date.now() + 2,
+                    type: "todo",
+                    content: "Try dragging this task to another list!",
+                    completed: false,
+                  },
+                ],
+              },
+              {
+                id: Date.now() + 3,
+                name: "In Progress",
+                items: [],
+              },
+              {
+                id: Date.now() + 4,
+                name: "Done",
+                items: [],
+              },
+            ],
+          };
+          appData.push(sampleProject);
+          saveData();
+          renderProjects();
+        }
+
+        setTimeout(() => {
+          const intro = introJs();
+
+          intro.setOptions({
+            steps: [
+              {
+                title: "Welcome to Taskan! 👋",
+                intro:
+                  "Taskan is a simple and easy to use task manager that helps you stay on top of your tasks. Taskan is an offline only app that stores your data locally on your device making it secure and private. You can export your data and import it in another device. Let's take a quick tour to help you get started with organizing your tasks.",
+                tooltipClass: "hide-back-button welcome-step",
+              },
+              {
+                element: "#addProjectBtn",
+                title: "Create Projects",
+                intro:
+                  "Start by creating a new project. You can define the timeline here.",
+                position: "bottom",
+              },
+              {
+                element: ".project:first-child .add-list-btn",
+                title: "Add Lists",
+                intro:
+                  "Within each project, you can create multiple lists to organize your tasks.",
+                position: "left",
+              },
+              {
+                element: '.list:first-child button[title="Add Sub-list',
+                title: "Sub Lists",
+                intro:
+                  "You can add a sub list inside a list to further group tasks.",
+                position: "right",
+              },
+              {
+                element: '.list:first-child button[title="New Todo"]',
+                title: "Add Tasks",
+                intro:
+                  "Add todos or notes to your lists. You can track time, set due dates, and more!",
+                position: "left",
+              },
+              {
+                element: ".list-items .list-item:first-child",
+                title: "Manage Tasks",
+                intro:
+                  "Drag and drop tasks between lists, edit them, track time, or mark them as complete.",
+                position: "right",
+              },
+              {
+                element: ".list-items .list-item:first-child",
+                title: "Task Options",
+                intro:
+                  "Hover over a task to see options for editing, timing, coloring, and more.",
+                position: "right",
+              },
+              {
+                element: "#themeToggleBtn",
+                title: "Customize",
+                intro:
+                  "Switch between light and dark themes for comfortable viewing.",
+                position: "bottom",
+              },
+              {
+                element: "#autoBackupBtn",
+                title: "Keep Your Data Safe",
+                intro:
+                  "Export your data regularly to keep your tasks backed up.",
+                position: "bottom",
+              },
+              {
+                element: "#importDataBtn",
+                title: "Import Data",
+                intro: "Import your data from a backup file.",
+                position: "bottom",
+              },
+              {
+                title: "Ready to Go! 🚀",
+                intro:
+                  "That's it! You're ready to start organizing your tasks. Need help? Look for tooltips when hovering over buttons.",
+              },
+            ],
+            showProgress: true,
+            showBullets: false,
+            disableInteraction: false,
+            hideNext: false,
+            hidePrev: false,
+            exitOnOverlayClick: false,
+            exitOnEsc: false,
+            skipLabel: "×",
+            tooltipClass: "custom-tooltip",
+            onbeforechange: function (targetElement) {
+              setTimeout(() => {
+                const prevButton = document.querySelector(
+                  ".introjs-prevbutton"
+                );
+                if (prevButton) {
+                  prevButton.style.display =
+                    this._currentStep === 0 ? "none" : "inline-block";
+                }
+              }, 0);
+            },
+          });
+
+          intro.start();
+          intro.oncomplete(() => {
+            localStorage.setItem("tutorialShown", "true");
+          });
+
+          let skipButtonClicked = false;
+
+          document.addEventListener(
+            "click",
+            function (e) {
+              if (e.target.classList.contains("introjs-skipbutton")) {
+                skipButtonClicked = true;
+              }
+            },
+            true
+          );
+
+          intro.onexit(function () {
+            if (skipButtonClicked) {
+              localStorage.setItem("tutorialShown", "true");
+            }
+            skipButtonClicked = false;
+          });
+        }, 1000);
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        setTheme(currentTheme);
+
+        const themeToggleBtn = document.getElementById("themeToggleBtn");
+        themeToggleBtn.innerHTML =
+          currentTheme === "dark"
+            ? '<i class="fas fa-sun"></i>'
+            : '<i class="fas fa-moon"></i>';
+
+        themeToggleBtn.addEventListener("click", () => {
+          const newTheme = currentTheme === "light" ? "dark" : "light";
+          setTheme(newTheme);
+          themeToggleBtn.innerHTML =
+            newTheme === "dark"
+              ? '<i class="fas fa-sun"></i>'
+              : '<i class="fas fa-moon"></i>';
+        });
+
+        Coloris({
+          theme: "default",
+          themeMode: currentTheme,
+          alpha: false,
+          formatToggle: false,
+          clearButton: false,
+          defaultColor: "#f4a261",
+          format: "hex",
+          focusInput: false,
+          parent: "body",
+          swatches: [
+            "#f4a261",
+            "#2a9d8f",
+            "#e76f51",
+            "#e9c46a",
+            "#264653",
+            "#ef476f",
+            "#ffd166",
+            "#06d6a0",
+            "#118ab2",
+            "#073b4c",
+          ],
+          position: "bottom-start",
+          margin: 2,
+        });
+
+        document.addEventListener("coloris:show", (event) => {
+          const preview = document.querySelector(".color-preview");
+          if (preview) {
+            const rect = preview.getBoundingClientRect();
+            const picker = document.querySelector(".clr-picker");
+            if (picker) {
+              requestAnimationFrame(() => {
+                picker.style.position = "fixed";
+                picker.style.left = `${rect.left}px`;
+                picker.style.top = `${rect.bottom + 5}px`;
+                picker.style.margin = "0";
+              });
+            }
+          }
+        });
+
+        document.addEventListener("coloris:change", (event) => {
+          const preview = document.querySelector(".color-preview");
+          if (preview) {
+            preview.style.backgroundColor = event.detail.color;
+          }
+        });
+      });
+
+      function updateBackupStatus(now) {
+        // Store the date in ISO format for consistent parsing
+        localStorage.setItem(LAST_BACKUP_KEY, now.toISOString());
+
+        const autoBackupBtn = document.getElementById("autoBackupBtn");
+        if (autoBackupBtn) {
+          autoBackupBtn.classList.remove("backup-nudge");
+        }
+
+        setTimeout(nudgeBackup, 60 * 60 * 1000);
+      }
+
+      function formatCompactDate(date) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        if (date.getTime() === today.getTime()) {
+          return "Today";
+        } else if (date.getTime() === tomorrow.getTime()) {
+          return "Tomorrow";
+        } else {
+          return date.toLocaleDateString("default", {
+            month: "short",
+            day: "numeric",
+          });
+        }
+      }
+
+      function handleDragOver(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        const draggingItem = document.querySelector(".dragging");
+        if (!draggingItem || draggingItem === this) return;
+
+        removePlaceholders();
+
+        const rect = this.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+
+        if (e.clientY < midY) {
+          const placeholder = createPlaceholder();
+          this.before(placeholder);
+        } else {
+          const placeholder = createPlaceholder();
+          this.after(placeholder);
+        }
+      }
+
+      function handleDragLeave(e) {
+        e.stopPropagation();
+        this.classList.remove("drop-highlight-top", "drop-highlight-bottom");
+      }
+
+      function handleDrop(e, list, container, project) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+          const { itemId, listId, isSubListItem, parentListId } = JSON.parse(
+            e.dataTransfer.getData("text/plain")
+          );
+
+          let sourceList;
+          let sourceItems;
+
+          if (isSubListItem) {
+            const parentList = appData
+              .flatMap((p) => p.lists)
+              .find((l) => l.id === parentListId);
+
+            if (parentList && parentList.subLists) {
+              sourceList = parentList.subLists.find((sl) => sl.id === listId);
+              if (sourceList) {
+                sourceItems = sourceList.items;
+              }
+            }
+          } else {
+            sourceList = appData
+              .flatMap((p) => p.lists)
+              .find((l) => l.id === listId);
+            if (sourceList) {
+              sourceItems = sourceList.items;
+            }
+          }
+
+          if (!sourceItems) return;
+          const draggedItem = sourceItems.find((i) => i.id === itemId);
+          if (!draggedItem) return;
+
+          sourceItems = sourceItems.filter((i) => i.id !== itemId);
+          if (isSubListItem) {
+            sourceList.items = sourceItems;
+          } else {
+            sourceList.items = sourceItems;
+          }
+
+          const placeholder = container.querySelector(".drop-placeholder");
+          if (placeholder) {
+            const items = Array.from(container.children);
+            const placeholderIndex = items.indexOf(placeholder);
+
+            list.items.splice(placeholderIndex, 0, draggedItem);
+          } else {
+            list.items.push(draggedItem);
+          }
+
+          saveData();
+          renderSingleProject(project);
+        } catch (err) {
+          console.error("Error during drag and drop:", err);
+        }
+      }
+
+      function getContrastColor(hexcolor) {
+        hexcolor = hexcolor.replace("#", "");
+
+        const r = parseInt(hexcolor.substr(0, 2), 16);
+        const g = parseInt(hexcolor.substr(2, 2), 16);
+        const b = parseInt(hexcolor.substr(4, 2), 16);
+
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+        return luminance > 0.5 ? "#000000" : "#ffffff";
+      }
+
+      // Add after other global variables
+      const searchBtn = document.getElementById("searchBtn");
+      const searchModal = document.querySelector(".search-modal");
+      const searchOverlay = document.querySelector(".search-overlay");
+      const searchInput = document.querySelector(".search-input");
+      const noResults = document.querySelector(".no-results");
+      const resultsContainer = document.querySelector(".results-container");
+
+      function showSearchModal() {
+        searchModal.style.display = "block";
+        searchOverlay.style.display = "block";
+        searchInput.focus();
+        searchInput.value = "";
+        noResults.style.display = "flex";
+        resultsContainer.style.display = "none";
+      }
+
+      function hideSearchModal() {
+        searchModal.style.display = "none";
+        searchOverlay.style.display = "none";
+        searchInput.value = "";
+      }
+
+      function performSearch(query) {
+        query = query.toLowerCase().trim();
+
+        const projectResults = [];
+        const listResults = [];
+        const taskResults = [];
+
+        appData.forEach((project) => {
+          // Search in project names
+          if (project.name.toLowerCase().includes(query)) {
+            projectResults.push({
+              type: "project",
+              name: project.name,
+              id: project.id,
+            });
+          }
+
+          // Search in lists and tasks
+          project.lists.forEach((list) => {
+            if (list.name.toLowerCase().includes(query)) {
+              listResults.push({
+                type: "list",
+                name: list.name,
+                projectName: project.name,
+                projectId: project.id,
+                id: list.id,
+              });
+            }
+
+            // Search in list items
+            list.items.forEach((item) => {
+              const content = (item.content || item.name || "").toLowerCase();
+              if (content.includes(query)) {
+                taskResults.push({
+                  type: "task",
+                  content: item.content || item.name,
+                  itemType: item.type,
+                  completed: item.completed,
+                  dueDate: item.dueDate,
+                  projectName: project.name,
+                  listName: list.name,
+                  projectId: project.id,
+                  listId: list.id,
+                  id: item.id,
+                });
+              }
+            });
+
+            // Search in sublists
+            if (list.subLists) {
+              list.subLists.forEach((subList) => {
+                if (subList.name.toLowerCase().includes(query)) {
+                  listResults.push({
+                    type: "sublist",
+                    name: subList.name,
+                    projectName: project.name,
+                    listName: list.name,
+                    projectId: project.id,
+                    parentListId: list.id,
+                    id: subList.id,
+                  });
+                }
+
+                subList.items?.forEach((item) => {
+                  const content = (
+                    item.content ||
+                    item.name ||
+                    ""
+                  ).toLowerCase();
+                  if (content.includes(query)) {
+                    taskResults.push({
+                      type: "task",
+                      content: item.content || item.name,
+                      itemType: item.type,
+                      completed: item.completed,
+                      dueDate: item.dueDate,
+                      projectName: project.name,
+                      listName: `${list.name} > ${subList.name}`,
+                      projectId: project.id,
+                      listId: subList.id,
+                      parentListId: list.id,
+                      id: item.id,
+                    });
+                  }
+                });
+              });
+            }
+          });
+        });
+
+        displayResults(projectResults, listResults, taskResults, query);
+      }
+
+      function displayResults(projects, lists, tasks, query) {
+        const projectsList = document.querySelector(
+          ".projects-group .results-list"
+        );
+        const listsList = document.querySelector(".lists-group .results-list");
+        const tasksList = document.querySelector(".tasks-group .results-list");
+
+        projectsList.innerHTML = "";
+        listsList.innerHTML = "";
+        tasksList.innerHTML = "";
+
+        const hasResults =
+          projects.length > 0 || lists.length > 0 || tasks.length > 0;
+        noResults.style.display = hasResults ? "none" : "flex";
+        resultsContainer.style.display = hasResults ? "block" : "none";
+
+        document.querySelector(".projects-group").style.display =
+          projects.length ? "block" : "none";
+        document.querySelector(".lists-group").style.display = lists.length
+          ? "block"
+          : "none";
+        document.querySelector(".tasks-group").style.display = tasks.length
+          ? "block"
+          : "none";
+
+        projects.forEach((project) => {
+          const div = document.createElement("div");
+          div.className = "search-result project-result";
+          div.innerHTML = `
+          <i class="fas fa-project-diagram"></i>
+          <div class="result-content">
+            <div class="result-title">${highlightText(
+              project.name,
+              query
+            )}</div>
+          </div>
+        `;
+          div.addEventListener("click", () => {
+            hideSearchModal();
+            const projectElement = document.querySelector(
+              `#project-${project.id}`
+            );
+            if (projectElement) {
+              const originalColor =
+                window.getComputedStyle(projectElement).backgroundColor;
+              const originalBorder = projectElement.style.border;
+
+              const blurOverlay = document.createElement("div");
+              blurOverlay.style.position = "fixed";
+              blurOverlay.style.top = "0";
+              blurOverlay.style.left = "0";
+              blurOverlay.style.right = "0";
+              blurOverlay.style.bottom = "0";
+              blurOverlay.style.backgroundColor = "rgba(0,0,0,0.1)";
+              blurOverlay.style.backdropFilter = "blur(3px)";
+              blurOverlay.style.zIndex = "100";
+              document.body.appendChild(blurOverlay);
+
+              projectElement.style.position = "relative";
+              projectElement.style.zIndex = "101";
+              projectElement.style.backgroundColor = "var(--accent-color)";
+              projectElement.style.border = `2px solid ${getThemeContrastColor()}`;
+              projectElement.style.boxShadow = `0 0 15px ${getThemeContrastColor()}`;
+
+              projectElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+
+              setTimeout(() => {
+                blurOverlay.remove();
+                projectElement.style.backgroundColor = originalColor;
+                projectElement.style.border = originalBorder;
+                projectElement.style.boxShadow = "";
+                projectElement.style.position = "";
+                projectElement.style.zIndex = "";
+              }, 2000);
+            }
+          });
+          projectsList.appendChild(div);
+        });
+
+        lists.forEach((list) => {
+          const div = document.createElement("div");
+          div.className = "search-result list-result";
+          div.innerHTML = `
+          <i class="fas fa-list"></i>
+          <div class="result-content">
+            <div class="result-title">${highlightText(list.name, query)}</div>
+            <div class="result-subtitle">in ${list.projectName}</div>
+          </div>
+        `;
+          div.addEventListener("click", () => {
+            hideSearchModal();
+            const projectElement = document.querySelector(
+              `#project-${list.projectId}`
+            );
+            if (projectElement) {
+              const listElement = projectElement.querySelector(
+                `.list:has(.list-header:contains("${list.name}"))`
+              );
+              if (listElement) {
+                const originalColor =
+                  window.getComputedStyle(listElement).backgroundColor;
+                const originalBorder = listElement.style.border;
+
+                const blurOverlay = document.createElement("div");
+                blurOverlay.style.position = "fixed";
+                blurOverlay.style.top = "0";
+                blurOverlay.style.left = "0";
+                blurOverlay.style.right = "0";
+                blurOverlay.style.bottom = "0";
+                blurOverlay.style.backgroundColor = "rgba(0,0,0,0.1)";
+                blurOverlay.style.backdropFilter = "blur(3px)";
+                blurOverlay.style.zIndex = "100";
+                document.body.appendChild(blurOverlay);
+
+                listElement.style.position = "relative";
+                listElement.style.zIndex = "101";
+                listElement.style.backgroundColor = "var(--accent-color)";
+                listElement.style.border = `2px solid ${getThemeContrastColor()}`;
+                listElement.style.boxShadow = `0 0 15px ${getThemeContrastColor()}`;
+
+                listElement.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+
+                setTimeout(() => {
+                  blurOverlay.remove();
+                  listElement.style.backgroundColor = originalColor;
+                  listElement.style.border = originalBorder;
+                  listElement.style.boxShadow = "";
+                  listElement.style.position = "";
+                  listElement.style.zIndex = "";
+                }, 2000);
+              }
+            }
+          });
+          tasksList.appendChild(div);
+        });
+
+        tasks.forEach((task) => {
+          const div = document.createElement("div");
+          div.className = "search-result task-result";
+          const icon =
+            task.itemType === "todo"
+              ? `<i class="far ${
+                  task.completed ? "fa-check-square" : "fa-square"
+                }"></i>`
+              : '<i class="far fa-note-sticky"></i>';
+
+          let dueDate = "";
+          if (task.dueDate) {
+            const date = new Date(task.dueDate);
+            dueDate = `<span class="due-date">${formatCompactDate(
+              date
+            )}</span>`;
+          }
+
+          // Get context around the matched text
+          const content = stripHtml(task.content);
+          const matchIndex = content.toLowerCase().indexOf(query.toLowerCase());
+          let contextText = "";
+
+          if (matchIndex >= 0) {
+            const start = Math.max(0, matchIndex - 50);
+            const end = Math.min(
+              content.length,
+              matchIndex + query.length + 50
+            );
+            contextText = content.substring(start, end);
+
+            if (start > 0) contextText = "..." + contextText;
+            if (end < content.length) contextText += "...";
+          } else {
+            contextText =
+              content.substring(0, 100) + (content.length > 100 ? "..." : "");
+          }
+
+          div.innerHTML = `
+          ${icon}
+          <div class="result-content">
+            <div class="result-title ${
+              task.completed ? "completed" : ""
+            }">${highlightText(contextText, query)}</div>
+            <div class="result-subtitle">
+              in ${task.projectName} > ${task.listName}
+              ${dueDate}
+            </div>
+          </div>
+        `;
+
+          div.addEventListener("click", () => {
+            hideSearchModal();
+            const projectElement = document.querySelector(
+              `#project-${task.projectId}`
+            );
+            if (projectElement) {
+              const taskElement = projectElement.querySelector(
+                `[data-item-id="${task.id}"]`
+              );
+              if (taskElement) {
+                const originalColor =
+                  window.getComputedStyle(taskElement).backgroundColor;
+                const originalBorder = taskElement.style.border;
+
+                const blurOverlay = document.createElement("div");
+                blurOverlay.style.position = "fixed";
+                blurOverlay.style.top = "0";
+                blurOverlay.style.left = "0";
+                blurOverlay.style.right = "0";
+                blurOverlay.style.bottom = "0";
+                blurOverlay.style.backgroundColor = "rgba(0,0,0,0.1)";
+                blurOverlay.style.backdropFilter = "blur(3px)";
+                blurOverlay.style.zIndex = "100";
+                document.body.appendChild(blurOverlay);
+
+                taskElement.style.position = "relative";
+                taskElement.style.zIndex = "101";
+                taskElement.style.backgroundColor = "var(--accent-color)";
+                taskElement.style.border = `2px solid ${getThemeContrastColor()}`;
+                taskElement.style.boxShadow = `0 0 15px ${getThemeContrastColor()}`;
+
+                taskElement.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+
+                setTimeout(() => {
+                  blurOverlay.remove();
+                  taskElement.style.backgroundColor = originalColor;
+                  taskElement.style.border = originalBorder;
+                  taskElement.style.boxShadow = "";
+                  taskElement.style.position = "";
+                  taskElement.style.zIndex = "";
+                }, 2000);
+              }
+            }
+          });
+          tasksList.appendChild(div);
+        });
+      }
+
+      function highlightText(text, query) {
+        if (!query) return text;
+        const regex = new RegExp(`(${query})`, "gi");
+        return text.replace(regex, "<mark>$1</mark>");
+      }
+
+      // Event Listeners
+      searchBtn.addEventListener("click", showSearchModal);
+      searchOverlay.addEventListener("click", hideSearchModal);
+
+      searchInput.addEventListener("input", (e) => {
+        performSearch(e.target.value);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+          e.preventDefault();
+          showSearchModal();
+        } else if (
+          e.key === "Escape" &&
+          searchModal.style.display === "block"
+        ) {
+          hideSearchModal();
+        }
+      });
+
+      // Add this helper function at the top with other functions
+      function getThemeContrastColor() {
+        return currentTheme === "dark" ? "#ffffff" : "#000000";
+      }
+    </script>
+  </body>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/intro.js@7.2.0/minified/introjs.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"
+  />
+  <link
+    href="https://unpkg.com/vis-timeline@7.7.3/styles/vis-timeline-graph2d.min.css"
+    rel="stylesheet"
+    type="text/css"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css"
+    rel="stylesheet"
+  />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+  <script
+    type="text/javascript"
+    src="https://unpkg.com/moment@2.30.1/min/moment.min.js"
+  ></script>
+  <script src="https://unpkg.com/vis-data@7.1.9/peer/umd/vis-data.min.js"></script>
+  <script src="https://unpkg.com/vis-timeline/peer/umd/vis-timeline-graph2d.min.js"></script>
+  <script>
+    const { Timeline, DataSet } = vis;
+  </script>
+</html>
