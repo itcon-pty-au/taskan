@@ -1638,16 +1638,16 @@
 
         if (filteredHistory.length === 0) {
           tbody.innerHTML = `
-          <tr>
-            <td colspan="5" style="text-align: center; padding: 40px; font-size: 1.1em; color: #666;">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px; font-size: 1.1em; color: #666;">
               ${
                 filter
                   ? "No tasks found matching your search. Try something else?"
                   : "No completed tasks yet. Time to get productive! 🚀"
               }
-            </td>
-          </tr>
-        `;
+              </td>
+            </tr>
+          `;
         } else {
           tbody.innerHTML = filteredHistory
             .map((entry, index) => {
@@ -1668,18 +1668,18 @@
               }
 
               return `
-              <tr data-index="${index}">
+                  <tr data-index="${index}">
                 <td>${taskDisplay}</td>
-                <td>${formatDate(entry.startedAt)}</td>
-                <td>${formatDate(entry.completedAt)}</td>
-                <td>${formatTime(entry.timeTaken)}</td>
-                <td class="action-column">
-                  <button class="delete-history-btn" title="Delete Entry">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </td>
-              </tr>
-            `;
+                    <td>${formatDate(entry.startedAt)}</td>
+                    <td>${formatDate(entry.completedAt)}</td>
+                    <td>${formatTime(entry.timeTaken)}</td>
+                    <td class="action-column">
+                      <button class="delete-history-btn" title="Delete Entry">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </td>
+                  </tr>
+                `;
             })
             .join("");
 
@@ -1841,6 +1841,7 @@
 
         form.style.display = "block";
         overlay.style.display = "block";
+        setTimeout(() => projectNameInput.focus(), 0);
 
         submitBtn.onclick = () => {
           const projectName = projectNameInput.value.trim();
