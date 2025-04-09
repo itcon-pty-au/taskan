@@ -256,6 +256,20 @@
       const AUTO_BACKUP_KEY = "kanbanAutoBackupHandle";
       const BACKUP_INTERVAL = 1000 * 60 * 60;
       const LAST_BACKUP_KEY = "kanbanLastBackupTime";
+      const RECENT_COLORS_KEY = "colorisRecentColors";
+      const MAX_RECENT_COLORS = 10;
+      const DEFAULT_SWATCHES = [
+        "#264653",
+        "#2a9d8f",
+        "#e9c46a",
+        "#f4a261",
+        "#e76f51",
+        "#ef476f",
+        "#ffd166",
+        "#06d6a0",
+        "#118ab2",
+        "#073b4c",
+      ];
 
       const projectsContainer = document.getElementById("projectsContainer");
       const todayViewContainer = document.getElementById("todayViewContainer");
@@ -298,6 +312,30 @@
       let currentTheme = localStorage.getItem("theme") || "dark";
       let taskHistory = JSON.parse(localStorage.getItem("taskHistory")) || [];
       let activeTimers = new Map();
+
+      // --- Color History Functions ---
+      function getRecentColors() {
+        const stored = localStorage.getItem(RECENT_COLORS_KEY);
+        try {
+          const parsed = JSON.parse(stored);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function addRecentColor(color) {
+        if (!color) return;
+        let recent = getRecentColors();
+        // Remove if already present to move it to the front
+        recent = recent.filter((c) => c !== color);
+        // Add to the beginning
+        recent.unshift(color);
+        // Limit history size
+        recent = recent.slice(0, MAX_RECENT_COLORS);
+        localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recent));
+      }
+      // --- End Color History Functions ---
 
       function createEditableElement(tag, value, onChange) {
         const el = document.createElement(tag);
@@ -1125,6 +1163,8 @@
           const color = event.target.value;
           item.backgroundColor = color;
           itemDiv.style.backgroundColor = color;
+          addRecentColor(color); // Add to history
+          initializeColoris(); // Re-initialize to update swatches
           saveData();
         });
 
@@ -1289,27 +1329,7 @@
           createProject(project);
         });
 
-        Coloris({
-          theme: "default",
-          themeMode: currentTheme,
-          formatToggle: false,
-          clearButton: true,
-          alpha: false,
-          wrap: true,
-          closeButton: true,
-          swatches: [
-            "#264653",
-            "#2a9d8f",
-            "#e9c46a",
-            "#f4a261",
-            "#e76f51",
-            "#ef476f",
-            "#ffd166",
-            "#06d6a0",
-            "#118ab2",
-            "#073b4c",
-          ],
-        });
+        initializeColoris(); // Use the new initialization function
       }
 
       addProjectBtn.addEventListener("click", () => showProjectForm(null));
@@ -1386,29 +1406,11 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        Coloris({
-          theme: "default",
-          themeMode: currentTheme,
-          formatToggle: false,
-          clearButton: true,
-          alpha: false,
-          wrap: true,
-          closeButton: true,
-          swatches: [
-            "#264653",
-            "#2a9d8f",
-            "#e9c46a",
-            "#f4a261",
-            "#e76f51",
-            "#ef476f",
-            "#ffd166",
-            "#06d6a0",
-            "#118ab2",
-            "#073b4c",
-          ],
-        });
-
-        renderProjects();
+        // Coloris initialization is now handled by initializeColoris,
+        // called within renderProjects which is called by initializeApp.
+        // If renderProjects might NOT be called, you might need an init call here too.
+        // initializeColoris(); // Potentially needed if renderProjects isn't guaranteed
+        // Render projects will call initializeColoris
       });
 
       function stripHtml(html) {
@@ -1894,6 +1896,8 @@
 
         tagColorPicker.addEventListener("change", (e) => {
           newColorPreview.style.backgroundColor = e.target.value;
+          addRecentColor(e.target.value); // Add to history
+          initializeColoris(); // Re-initialize to update swatches
         });
 
         form.querySelector("h2").textContent = projectToEdit
@@ -2648,8 +2652,28 @@
           if (preview) {
             preview.style.backgroundColor = event.detail.color;
           }
+          // No need to call addRecentColor here as the input's 'change' event handles it.
         });
       });
+
+      // New function to centralize Coloris initialization
+      function initializeColoris() {
+        const recentColors = getRecentColors();
+        const combinedSwatches = [
+          ...new Set([...recentColors, ...DEFAULT_SWATCHES]),
+        ]; // Combine and remove duplicates
+
+        Coloris({
+          theme: "default",
+          themeMode: currentTheme,
+          formatToggle: false,
+          clearButton: true,
+          alpha: false,
+          wrap: true,
+          closeButton: true,
+          swatches: combinedSwatches, // Use combined swatches
+        });
+      }
 
       function updateBackupStatus(now) {
         // Store the date in ISO format for consistent parsing
