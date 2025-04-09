@@ -28,6 +28,9 @@
           <button id="addProjectBtn" title="Create New Project">
             New Project
           </button>
+          <button id="todayBtn" title="View Today's Tasks">
+            <i class="fa-solid fa-calendar-day"></i>
+          </button>
           <button id="searchBtn" title="Search (Ctrl/Cmd + K)">
             <i class="fas fa-search"></i>
           </button>
@@ -55,6 +58,7 @@
         </div>
       </div>
       <div id="projectsContainer" class="projects-container"></div>
+      <div id="todayViewContainer" class="today-view-container"></div>
       <div class="footer">
         ©
         <script>
@@ -88,6 +92,14 @@
         <span class="due-date-info"></span>
       </div>
       <div id="summernote"></div>
+      <div class="item-tags-container">
+        <label>Tags:</label>
+        <input
+          type="text"
+          id="itemTagsInput"
+          placeholder="Enter tags (comma separated)"
+        />
+      </div>
     </div>
 
     <div class="history-overlay"></div>
@@ -246,10 +258,12 @@
       const LAST_BACKUP_KEY = "kanbanLastBackupTime";
 
       const projectsContainer = document.getElementById("projectsContainer");
+      const todayViewContainer = document.getElementById("todayViewContainer");
       const addProjectBtn = document.getElementById("addProjectBtn");
       const importDataBtn = document.getElementById("importDataBtn");
       const themeToggleBtn = document.getElementById("themeToggleBtn");
       const historyBtn = document.getElementById("historyBtn");
+      const todayBtn = document.getElementById("todayBtn");
 
       let appData = (() => {
         const backupConfig = localStorage.getItem(AUTO_BACKUP_KEY);
@@ -1093,7 +1107,18 @@
         colorPickerBtn.innerHTML = '<i class="fas fa-fill-drip"></i>';
         colorPickerBtn.title = "Change Color";
         colorPickerBtn.addEventListener("click", () => {
+          // Set the initial color value before opening the picker
+          colorInput.value = item.backgroundColor || "#f4a261";
           colorInput.click();
+        });
+
+        const clearFormattingBtn = document.createElement("button");
+        clearFormattingBtn.innerHTML = '<i class="fas fa-eraser"></i>';
+        clearFormattingBtn.title = "Clear Formatting";
+        clearFormattingBtn.addEventListener("click", () => {
+          delete item.backgroundColor;
+          itemDiv.style.backgroundColor = "";
+          saveData();
         });
 
         colorInput.addEventListener("change", (event) => {
@@ -1141,6 +1166,7 @@
         hoverMenu.appendChild(editorBtn);
         hoverMenu.appendChild(toggleTypeBtn);
         hoverMenu.appendChild(colorPickerBtn);
+        hoverMenu.appendChild(clearFormattingBtn);
         hoverMenu.appendChild(colorInput);
         hoverMenu.appendChild(deleteButton);
 
@@ -1162,6 +1188,15 @@
               delete item.completedAt;
             }
             saveData();
+            console.log("Called saveData after toggle");
+
+            // Re-render the Today view immediately to show sorting/status change
+            renderTodayView();
+
+            // Optional: If you want the main project view to update immediately
+            // You'd need to find the project and re-render it
+            // const project = appData.find(p => p.lists.some(l => l.items.some(i => i.id === itemId) || (l.subLists && l.subLists.some(sl => sl.items.some(i => i.id === itemId)))));
+            // if (project) renderSingleProject(project);
           });
 
           itemDiv.appendChild(checkbox);
@@ -1391,6 +1426,7 @@
         const clearDueDate = popup.querySelector("#clearDueDate");
         const dueDateInfo = popup.querySelector(".due-date-info");
         const headerTitle = popup.querySelector(".editor-header h3");
+        const itemTagsInput = popup.querySelector("#itemTagsInput"); // Added
 
         $("#summernote").empty();
         if ($("#summernote").data("summernote")) {
@@ -1408,6 +1444,9 @@
           dueDateInput.value = "";
           dueDateInfo.textContent = "";
         }
+
+        // Populate tags input
+        itemTagsInput.value = item.tags ? item.tags.join(", ") : "";
 
         $("#summernote").summernote({
           height: "100%",
@@ -1483,6 +1522,15 @@
           styleTags: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
           prettifyHtml: false,
           emptyPara: "",
+          toolbar: [
+            ["style", ["style"]],
+            ["font", ["bold", "italic", "underline", "clear"]],
+            ["color", ["color"]],
+            ["para", ["ul", "ol", "paragraph"]],
+            ["table", ["table"]],
+            ["insert", ["link", "picture"]],
+            ["view", ["fullscreen", "codeview", "help"]],
+          ],
         });
 
         popup.style.display = "flex";
@@ -1573,6 +1621,24 @@
 
         closeBtn.onclick = closeEditor;
         overlay.onclick = closeEditor;
+
+        // --- Item Tags Handling ---
+        const handleTagInput = () => {
+          const tags = itemTagsInput.value
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0);
+          item.tags = tags.length > 0 ? tags : undefined; // Store as array or undefined if empty
+          saveData(); // Save immediately on input change
+          // Re-render today view if it's currently displayed to show tag changes
+          if (document.body.classList.contains("showing-today")) {
+            renderTodayView();
+          }
+        };
+
+        // Use 'input' event for immediate feedback
+        itemTagsInput.removeEventListener("input", handleTagInput); // Remove previous listener if any
+        itemTagsInput.addEventListener("input", handleTagInput);
       }
 
       function updateDueDateInfo(dueDate) {
@@ -3102,6 +3168,455 @@
       function getThemeContrastColor() {
         return currentTheme === "dark" ? "#ffffff" : "#000000";
       }
+
+      // --- Today View Logic ---
+
+      let originalOrder = []; // Store original positions for reordering
+
+      function getTodayItems() {
+        const todayItems = [];
+        appData.forEach((project, projectIndex) => {
+          project.lists.forEach((list, listIndex) => {
+            if (list.name.toLowerCase() === "today") {
+              list.items.forEach((item, itemIndex) => {
+                if (item.type === "todo") {
+                  // Only include todos
+                  todayItems.push({
+                    ...item,
+                    originalProjectIndex: projectIndex,
+                    originalListIndex: listIndex,
+                    originalItemIndex: itemIndex,
+                    projectName: project.name, // Store project name for display
+                    listName: list.name, // Store list name for reference (optional)
+                  });
+                }
+              });
+            }
+            // Optionally check sublists named "Today" as well
+            if (list.subLists) {
+              list.subLists.forEach((subList, subListIndex) => {
+                if (subList.name.toLowerCase() === "today") {
+                  subList.items.forEach((item, itemIndex) => {
+                    if (item.type === "todo") {
+                      todayItems.push({
+                        ...item,
+                        originalProjectIndex: projectIndex,
+                        originalListIndex: listIndex,
+                        originalSubListIndex: subListIndex, // Track sublist index
+                        originalItemIndex: itemIndex,
+                        projectName: project.name,
+                        listName: `${list.name} > ${subList.name}`, // Indicate sublist path
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        });
+
+        // Sort completed items to the bottom
+        todayItems.sort((a, b) => {
+          if (a.completed === b.completed) return 0; // Keep original relative order if same status
+          return a.completed ? 1 : -1; // Incomplete (false) comes before complete (true)
+        });
+
+        originalOrder = [...todayItems]; // Store the sorted order
+        return todayItems;
+      }
+
+      function renderTodayView() {
+        const todayItems = getTodayItems();
+        todayViewContainer.innerHTML = ""; // Clear previous content
+
+        const header = document.createElement("div");
+        header.className = "today-view-header";
+        header.textContent = "Today's Tasks";
+        todayViewContainer.appendChild(header);
+
+        const itemsContainer = document.createElement("div");
+        itemsContainer.className = "today-items-container";
+
+        if (todayItems.length === 0) {
+          itemsContainer.innerHTML =
+            '<p style="text-align: center; color: var(--text-muted);">No tasks found in "Today" lists.</p>';
+        } else {
+          todayItems.forEach((item, index) => {
+            // Added index parameter
+            const itemCard = createTodayItemCard(item, index); // Pass index
+            itemsContainer.appendChild(itemCard);
+          });
+          // Setup drag and drop for the container
+          setupTodayDragAndDrop(itemsContainer);
+        }
+
+        todayViewContainer.appendChild(itemsContainer);
+      }
+
+      function createTodayItemCard(item, index) {
+        // Added index parameter
+        const itemCard = document.createElement("div");
+        itemCard.className = "today-item-card";
+        itemCard.setAttribute("draggable", "true");
+        itemCard.dataset.itemId = item.id; // Use unique item ID
+
+        // Number Span
+        const numberSpan = document.createElement("span");
+        numberSpan.className = "today-item-number";
+        numberSpan.textContent = `${index + 1}.`;
+        itemCard.appendChild(numberSpan);
+
+        // Checkbox
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = item.completed;
+        checkbox.classList.add("todo-checkbox");
+        checkbox.addEventListener("change", () => {
+          toggleTodayItemComplete(item.id, checkbox.checked);
+          itemCard.classList.toggle("completed", checkbox.checked);
+        });
+        itemCard.appendChild(checkbox);
+
+        // Content
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "today-item-content";
+
+        const itemName = document.createElement("div");
+        itemName.className = "item-name";
+        itemName.innerHTML = formatTextWithLinks(
+          stripHtml(item.content || item.name || "").substring(0, 150) +
+            (stripHtml(item.content || item.name || "").length > 150
+              ? "..."
+              : "")
+        );
+        if (item.completed) {
+          itemCard.classList.add("completed");
+        }
+        itemName.style.cursor = "pointer";
+        itemName.addEventListener("click", () =>
+          openEditor(findOriginalItem(item.id))
+        );
+
+        // Item Tags Display (Today View)
+        let tagsHtml = "";
+        if (item.tags && item.tags.length > 0) {
+          tagsHtml = `<div class="today-item-tags">${item.tags
+            .map((tag) => `<span class="item-tag">${tag}</span>`)
+            .join("")}</div>`;
+        }
+
+        const itemInfo = document.createElement("div");
+        itemInfo.className = "today-item-info";
+        itemInfo.textContent = `Project: ${item.projectName} | List: ${item.listName}`;
+        if (item.dueDate) {
+          const date = new Date(item.dueDate);
+          const dueDateSpan = document.createElement("span");
+          dueDateSpan.textContent = ` | Due: ${formatCompactDate(date)}`;
+          dueDateSpan.style.marginLeft = "5px";
+          const diffTime = date - new Date();
+          if (diffTime < 0) dueDateSpan.style.color = "#ff4444";
+          else if (diffTime < 2 * 24 * 60 * 60 * 1000)
+            dueDateSpan.style.color = "#ffd700";
+          itemInfo.appendChild(dueDateSpan);
+        }
+
+        contentDiv.appendChild(itemName);
+        if (tagsHtml) {
+          contentDiv.insertAdjacentHTML("beforeend", tagsHtml); // Insert tags HTML
+        }
+        contentDiv.appendChild(itemInfo);
+        itemCard.appendChild(contentDiv);
+
+        // --- Drag and Drop Handlers for Today Items ---
+        itemCard.addEventListener("dragstart", (e) => {
+          e.stopPropagation();
+          // Ensure other drag types don't interfere
+          if (e.target !== itemCard) return;
+
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData(
+            "text/plain",
+            JSON.stringify({ type: "todayItem", itemId: item.id })
+          );
+          setTimeout(() => itemCard.classList.add("dragging"), 0); // Use timeout to ensure it applies
+          removePlaceholders(); // Clear placeholders from other lists
+        });
+
+        itemCard.addEventListener("dragend", (e) => {
+          e.stopPropagation();
+          itemCard.classList.remove("dragging");
+          removePlaceholders();
+        });
+
+        // Add dragover/leave for visual feedback (optional but good UX)
+        itemCard.addEventListener("dragover", handleTodayDragOver);
+        itemCard.addEventListener("dragleave", handleTodayDragLeave);
+        // Drop handled by the container
+
+        return itemCard;
+      }
+
+      function setupTodayDragAndDrop(container) {
+        container.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          const draggingItem = document.querySelector(
+            ".today-item-card.dragging"
+          );
+          if (!draggingItem) return;
+
+          const afterElement = getDragAfterElement(container, e.clientY);
+          removePlaceholders();
+          const placeholder = createPlaceholder();
+
+          if (afterElement == null) {
+            container.appendChild(placeholder);
+          } else {
+            container.insertBefore(placeholder, afterElement);
+          }
+        });
+
+        container.addEventListener("drop", (e) => {
+          e.preventDefault();
+          removePlaceholders();
+          // Get the data first to ensure it's a todayItem drag
+          let data;
+          try {
+            data = JSON.parse(e.dataTransfer.getData("text/plain"));
+            if (data.type !== "todayItem") return; // Ignore drops from other types
+          } catch {
+            return; // Not valid JSON or type
+          }
+
+          const draggingItemElement = container.querySelector(
+            `.today-item-card[data-item-id="${data.itemId}"]`
+          );
+          if (!draggingItemElement) return;
+
+          try {
+            const draggedItemId = data.itemId;
+
+            // Find the actual data item being dragged from the originalOrder cache
+            const draggedItemData = originalOrder.find(
+              (i) => i.id == draggedItemId
+            );
+            if (!draggedItemData) {
+              console.error(
+                "Could not find dragged item data in originalOrder cache"
+              );
+              return;
+            }
+
+            // --- Reorder the original appData based on the drop ---
+            // 1. Remove from original position
+            const {
+              originalProjectIndex,
+              originalListIndex,
+              originalSubListIndex,
+              originalItemIndex,
+            } = draggedItemData;
+            let sourceListItems;
+            let sourceListRef; // Reference to the list/sublist object
+
+            if (originalSubListIndex !== undefined) {
+              sourceListItems =
+                appData[originalProjectIndex]?.lists[originalListIndex]
+                  ?.subLists[originalSubListIndex]?.items;
+              sourceListRef =
+                appData[originalProjectIndex]?.lists[originalListIndex]
+                  ?.subLists[originalSubListIndex];
+            } else {
+              sourceListItems =
+                appData[originalProjectIndex]?.lists[originalListIndex]?.items;
+              sourceListRef =
+                appData[originalProjectIndex]?.lists[originalListIndex];
+            }
+
+            if (!sourceListItems || !sourceListRef) {
+              console.error(
+                "Could not find source list items for today item",
+                draggedItemData
+              );
+              return;
+            }
+
+            // Find the correct current index in the source list (data might have changed since initial load)
+            const currentSourceIndex = sourceListItems.findIndex(
+              (i) => i.id == draggedItemId
+            );
+            if (currentSourceIndex === -1) {
+              console.error(
+                "Could not find item in its original source list anymore"
+              );
+              return; // Item seems to have been moved/deleted elsewhere
+            }
+
+            const [removedItem] = sourceListItems.splice(currentSourceIndex, 1);
+
+            // 2. Find the target position based on the visual drop
+            const placeholder = container.querySelector(".drop-placeholder");
+            let targetIndexInVisualList = 0;
+
+            if (placeholder) {
+              // Get items *currently* in the DOM before the placeholder
+              const itemsBeforePlaceholder = [];
+              let sibling = placeholder.previousElementSibling;
+              while (sibling) {
+                if (sibling.classList.contains("today-item-card")) {
+                  itemsBeforePlaceholder.unshift(sibling); // Add to beginning
+                }
+                sibling = sibling.previousElementSibling;
+              }
+              targetIndexInVisualList = itemsBeforePlaceholder.length;
+              placeholder.remove(); // Remove placeholder after getting index
+            } else {
+              // Dropped at the end if no placeholder exists
+              targetIndexInVisualList =
+                container.querySelectorAll(".today-item-card").length;
+            }
+
+            // 3. Determine the target list and index in the original data
+
+            let insertAtIndex = 0; // Default to start of the list
+
+            if (targetIndexInVisualList > 0) {
+              // Find the item that visually appeared *before* the drop position
+              const itemBeforeDropElement =
+                container.querySelectorAll(".today-item-card")[
+                  targetIndexInVisualList - 1
+                ];
+              const itemBeforeDropId = itemBeforeDropElement?.dataset.itemId;
+
+              if (itemBeforeDropId) {
+                // Find this item in the source list to determine insertion point
+                const indexInSource = sourceListItems.findIndex(
+                  (i) => i.id == itemBeforeDropId
+                );
+                if (indexInSource !== -1) {
+                  insertAtIndex = indexInSource + 1;
+                }
+              }
+            }
+
+            sourceListItems.splice(insertAtIndex, 0, removedItem);
+
+            saveData();
+            renderTodayView(); // Re-render the today view with new order
+            // Optionally, re-render the specific project if needed
+            // renderSingleProject(appData[originalProjectIndex]);
+          } catch (err) {
+            console.error("Error during Today view drag and drop:", err);
+          } finally {
+            if (draggingItemElement)
+              draggingItemElement.classList.remove("dragging");
+            removePlaceholders();
+          }
+        });
+      }
+
+      // Helper for dragover
+      function getDragAfterElement(container, y) {
+        const draggableElements = [
+          ...container.querySelectorAll(".today-item-card:not(.dragging)"),
+        ];
+
+        return draggableElements.reduce(
+          (closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+              return { offset: offset, element: child };
+            } else {
+              return closest;
+            }
+          },
+          { offset: Number.NEGATIVE_INFINITY }
+        ).element;
+      }
+
+      // Helper for dragover on items
+      function handleTodayDragOver(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        // Optional: Add visual cue
+      }
+
+      function handleTodayDragLeave(e) {
+        // Optional: Remove visual cue
+      }
+
+      // Find original item data in appData
+      function findOriginalItem(itemId) {
+        for (const project of appData) {
+          for (const list of project.lists) {
+            let foundItem = list.items.find((item) => item.id == itemId);
+            if (foundItem) return foundItem;
+            if (list.subLists) {
+              for (const subList of list.subLists) {
+                foundItem = subList.items.find((item) => item.id == itemId);
+                if (foundItem) return foundItem;
+              }
+            }
+          }
+        }
+        return null; // Should not happen if ID exists
+      }
+
+      // Toggle completion status
+      function toggleTodayItemComplete(itemId, isCompleted) {
+        console.log(`Toggling item ${itemId} to completed: ${isCompleted}`);
+        const originalItem = findOriginalItem(itemId);
+        console.log("Found original item:", originalItem);
+        if (originalItem && originalItem.type === "todo") {
+          originalItem.completed = isCompleted;
+          console.log(
+            "Updated originalItem.completed to:",
+            originalItem.completed
+          );
+          if (isCompleted) {
+            stopTimer(originalItem); // Stop timer if running
+            addToHistory(originalItem);
+            originalItem.completedAt = new Date().toISOString();
+          } else {
+            delete originalItem.completedAt;
+          }
+          saveData();
+          console.log("Called saveData after toggle");
+
+          // Re-render the Today view immediately to show sorting/status change
+          renderTodayView();
+
+          // Optional: If you want the main project view to update immediately
+          // You'd need to find the project and re-render it
+          // const project = appData.find(p => p.lists.some(l => l.items.some(i => i.id === itemId) || (l.subLists && l.subLists.some(sl => sl.items.some(i => i.id === itemId)))));
+          // if (project) renderSingleProject(project);
+        }
+      }
+
+      // --- Event Listener for Today Button ---
+      todayBtn.addEventListener("click", () => {
+        const isProjectsVisible = projectsContainer.style.display !== "none";
+        if (isProjectsVisible) {
+          // Switch to Today view
+          projectsContainer.style.display = "none";
+          todayViewContainer.style.display = "flex"; // Use flex as per CSS
+          document.body.classList.remove("showing-projects");
+          document.body.classList.add("showing-today");
+          renderTodayView();
+          todayBtn.classList.add("active"); // Add active class
+          // Maybe remove active from other view buttons if any
+        } else {
+          // Switch back to Projects view
+          projectsContainer.style.display = "flex"; // Or block depending on original
+          todayViewContainer.style.display = "none";
+          document.body.classList.add("showing-projects");
+          document.body.classList.remove("showing-today");
+          todayBtn.classList.remove("active");
+          // Re-render projects if necessary, or assume it's cached
+          renderProjects();
+        }
+      });
+
+      // Initialize with projects view shown
+      document.body.classList.add("showing-projects");
     </script>
   </body>
 </html>
