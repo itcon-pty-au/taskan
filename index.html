@@ -3287,6 +3287,9 @@
         itemCard.className = "today-item-card";
         itemCard.setAttribute("draggable", "true");
         itemCard.dataset.itemId = item.id; // Use unique item ID
+        if (item.backgroundColor) {
+          itemCard.style.backgroundColor = item.backgroundColor;
+        }
 
         // Number Span
         const numberSpan = document.createElement("span");
@@ -3423,6 +3426,29 @@
           try {
             const draggedItemId = data.itemId;
 
+            // --- REVISED LOGIC: DOM Manipulation Only ---
+
+            // 1. Find the visual target position
+            const afterElement = getDragAfterElement(container, e.clientY);
+
+            // 2. Move the dragged element in the DOM
+            if (afterElement === null) {
+              container.appendChild(draggingItemElement);
+            } else {
+              container.insertBefore(draggingItemElement, afterElement);
+            }
+
+            // 3. Update numbering visually
+            const allCards = container.querySelectorAll(".today-item-card");
+            allCards.forEach((card, index) => {
+              const numberSpan = card.querySelector(".today-item-number");
+              if (numberSpan) {
+                numberSpan.textContent = `${index + 1}.`;
+              }
+            });
+
+            // --- REMOVED appData modification and saveData() call ---
+            /*
             // Find the actual data item being dragged from the originalOrder cache
             const draggedItemData = originalOrder.find(
               (i) => i.id == draggedItemId
@@ -3531,6 +3557,7 @@
             renderTodayView(); // Re-render the today view with new order
             // Optionally, re-render the specific project if needed
             // renderSingleProject(appData[originalProjectIndex]);
+            */
           } catch (err) {
             console.error("Error during Today view drag and drop:", err);
           } finally {
