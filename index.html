@@ -1743,6 +1743,11 @@
           stripHtml(entry.task).toLowerCase().includes(filter.toLowerCase())
         );
 
+        // Sort by completedAt date, descending (latest first)
+        filteredHistory.sort(
+          (a, b) => new Date(b.completedAt) - new Date(a.completedAt)
+        );
+
         if (filteredHistory.length === 0) {
           tbody.innerHTML = `
             <tr>
