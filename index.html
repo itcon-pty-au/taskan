@@ -31,7 +31,7 @@
           <button id="todayBtn" title="View Today's Tasks">
             <i class="fa-solid fa-calendar-day"></i>
           </button>
-          <button id="searchBtn" title="Search (Ctrl/Cmd + K)">
+          <button id="searchBtn" title="Search (Ctrl/Cmd + Shift + K)">
             <i class="fas fa-search"></i>
           </button>
           <button id="importDataBtn" title="Import Data">
@@ -189,7 +189,8 @@
             class="search-input"
             placeholder="Search projects, lists and tasks... (Esc to close)"
           />
-          <kbd class="shortcut-hint">Ctrl/⌘ K</kbd>
+          <kbd class="shortcut-hint">Ctrl/⌘ Shift K</kbd>
+          <!-- Updated hint -->
         </div>
       </div>
       <div class="search-results">
@@ -3181,7 +3182,12 @@
       });
 
       document.addEventListener("keydown", (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        // Changed Search shortcut: Added Shift key requirement
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          e.key.toLowerCase() === "k"
+        ) {
           e.preventDefault();
           showSearchModal();
         } else if (
@@ -3189,6 +3195,10 @@
           searchModal.style.display === "block"
         ) {
           hideSearchModal();
+          // Changed Today shortcut: Changed key from 'y' to 'c'
+        } else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "c") {
+          e.preventDefault();
+          todayBtn.click(); // Trigger the existing toggle logic
         }
       });
 
