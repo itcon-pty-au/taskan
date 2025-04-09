@@ -2605,6 +2605,8 @@
               : '<i class="fas fa-moon"></i>';
         });
 
+        // REMOVE THIS BLOCK - Initialization is handled by initializeColoris()
+        /*
         Coloris({
           theme: "default",
           themeMode: currentTheme,
@@ -2630,6 +2632,7 @@
           position: "bottom-start",
           margin: 2,
         });
+        */
 
         document.addEventListener("coloris:show", (event) => {
           const preview = document.querySelector(".color-preview");
@@ -2662,6 +2665,7 @@
         const combinedSwatches = [
           ...new Set([...recentColors, ...DEFAULT_SWATCHES]),
         ]; // Combine and remove duplicates
+        //console.log("Initializing Coloris with swatches:", combinedSwatches); // Add log here
 
         Coloris({
           theme: "default",
