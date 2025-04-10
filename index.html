@@ -1217,7 +1217,37 @@
         const clearDueDate = popup.querySelector("#clearDueDate");
         const dueDateInfo = popup.querySelector(".due-date-info");
         const headerTitle = popup.querySelector(".editor-header h3");
-        const itemTagsInput = popup.querySelector("#itemTagsInput"); // Added
+        const itemTagsInputOriginal = popup.querySelector("#itemTagsInput");
+        const handleTagInput = () => {
+          console.log(`Handling tag input for item ID: ${item.id}`);
+          const tags = newItemTagsInput.value
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0);
+          console.log(
+            `  Input value: '${newItemTagsInput.value}', Parsed tags:`,
+            JSON.stringify(tags)
+          );
+          item.tags = tags.length > 0 ? tags : undefined;
+          console.log(
+            `  Item ID ${item.id} tags set to:`,
+            JSON.stringify(item.tags)
+          );
+          saveData();
+          if (document.body.classList.contains("showing-today")) {
+            renderTodayView();
+          }
+        };
+        const newItemTagsInput = itemTagsInputOriginal.cloneNode(true);
+        itemTagsInputOriginal.parentNode.replaceChild(
+          newItemTagsInput,
+          itemTagsInputOriginal
+        );
+        newItemTagsInput.value = item.tags ? item.tags.join(", ") : "";
+        console.log(
+          `  Set initial input value for ${item.id}: '${newItemTagsInput.value}'`
+        );
+        newItemTagsInput.addEventListener("input", handleTagInput);
         $("#summernote").empty();
         if ($("#summernote").data("summernote")) {
           $("#summernote").summernote("destroy");
@@ -1232,7 +1262,7 @@
           dueDateInput.value = "";
           dueDateInfo.textContent = "";
         }
-        itemTagsInput.value = item.tags ? item.tags.join(", ") : "";
+        itemTagsInputOriginal.value = item.tags ? item.tags.join(", ") : "";
         $("#summernote").summernote({
           height: "100%",
           minHeight: null,
@@ -1386,19 +1416,6 @@
         };
         closeBtn.onclick = closeEditor;
         overlay.onclick = closeEditor;
-        const handleTagInput = () => {
-          const tags = itemTagsInput.value
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag.length > 0);
-          item.tags = tags.length > 0 ? tags : undefined;
-          saveData();
-          if (document.body.classList.contains("showing-today")) {
-            renderTodayView();
-          }
-        };
-        itemTagsInput.removeEventListener("input", handleTagInput);
-        itemTagsInput.addEventListener("input", handleTagInput);
       }
       function updateDueDateInfo(dueDate) {
         const dueDateInfo = document.querySelector(".due-date-info");
@@ -2977,13 +2994,18 @@
       }
       function handleTodayDragLeave(e) {}
       function findOriginalItem(itemId) {
+        const numericItemId = Number(itemId);
         for (const project of appData) {
           for (const list of project.lists) {
-            let foundItem = list.items.find((item) => item.id == itemId);
+            let foundItem = list.items.find(
+              (item) => item.id === numericItemId
+            );
             if (foundItem) return foundItem;
             if (list.subLists) {
               for (const subList of list.subLists) {
-                foundItem = subList.items.find((item) => item.id == itemId);
+                foundItem = subList.items.find(
+                  (item) => item.id === numericItemId
+                );
                 if (foundItem) return foundItem;
               }
             }
