@@ -1368,6 +1368,9 @@
             if (item.dueDate) {
               newItem.dueDate = item.dueDate;
             }
+            if (item.tags && item.tags.length > 0) {
+              newItem.tags = [...item.tags];
+            }
             if (item.list) {
               item.list.items.push(newItem);
               saveData();
@@ -1391,7 +1394,7 @@
             .split(",")
             .map((tag) => tag.trim())
             .filter((tag) => tag.length > 0);
-          item.tags = tags.length > 0 ? tags : undefined;
+          item.tags = tags.length > 0 ? [...tags] : undefined;
           saveData();
           if (document.body.classList.contains("showing-today")) {
             renderTodayView();
@@ -1691,18 +1694,18 @@
             .filter((m) => m.name && m.date);
           if (projectToEdit) {
             projectToEdit.name = projectName;
-            projectToEdit.tags = tags.length > 0 ? tags : undefined;
+            projectToEdit.tags = tags.length > 0 ? [...tags] : undefined;
             projectToEdit.tagColor = tagColor;
             projectToEdit.milestones =
-              milestones.length > 0 ? milestones : undefined;
+              milestones.length > 0 ? [...milestones] : undefined;
           } else {
             const newProject = {
               id: Date.now(),
               name: projectName,
-              tags: tags.length > 0 ? tags : undefined,
+              tags: tags.length > 0 ? [...tags] : undefined,
               tagColor: tagColor,
               lists: [],
-              milestones: milestones.length > 0 ? milestones : undefined,
+              milestones: milestones.length > 0 ? [...milestones] : undefined,
             };
             appData.unshift(newProject);
           }
