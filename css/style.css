@@ -2743,6 +2743,7 @@ mark {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
@@ -2863,9 +2864,6 @@ body.showing-today #projectsContainer {
   display: none;
 }
 
-body {
-}
-
 .today-item-number {
   font-weight: bold;
   margin-right: 10px;
@@ -2918,3 +2916,93 @@ body {
 }
 
 /* Add drag placeholder styles similar to list items if needed */
+
+.today-item-card.overdue,
+.today-item-card.due-soon {
+  position: relative;
+  overflow: visible;
+}
+
+.today-item-card.overdue::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 12px;
+  height: 12px;
+  background-color: #ff4444;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+  z-index: 2;
+}
+
+.today-item-card.due-soon::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 12px;
+  height: 12px;
+  background-color: #ffd700;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+  z-index: 2;
+}
+
+.today-item-card .due-date-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.8em;
+  padding: 2px;
+  border-radius: 0 5px 0 5px;
+  background: var(--header-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  overflow: hidden;
+  min-width: 45px;
+  text-align: center;
+}
+
+.today-item-card .due-date-tag .month {
+  font-size: 0.7em;
+  text-transform: uppercase;
+  font-weight: bold;
+  background: #555555;
+  color: white;
+  width: 100%;
+  padding: 2px 0;
+  letter-spacing: 0.5px;
+}
+
+.today-item-card .due-date-tag .day {
+  font-size: 1.2em;
+  font-weight: bold;
+  line-height: 1.4;
+  padding: 2px 0;
+  color: var(--text-color);
+}
+
+.today-item-card.overdue .due-date-tag .month,
+.today-item-card.overdue .due-date-tag .day {
+  color: #ff4444;
+}
+
+.today-item-card.overdue .due-date-tag .month {
+  background: #ff4444;
+  color: white;
+}
+
+.today-item-card.due-soon .due-date-tag .month,
+.today-item-card.due-soon .due-date-tag .day {
+  color: #ffd700;
+}
+
+.today-item-card.due-soon .due-date-tag .month {
+  background: #ffd700;
+  color: #000;
+}

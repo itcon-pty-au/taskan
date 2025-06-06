@@ -1281,6 +1281,7 @@
               }
               if (item.isNew && item.type === "todo" && dueDateInput.value) {
                 const date = new Date(dueDateInput.value + "T00:00:00");
+                // For new items, we can directly set the dueDate as they're not yet in the appData structure
                 item.dueDate = date.toISOString();
                 updateDueDateInfo(item.dueDate);
               }
@@ -1344,31 +1345,115 @@
         overlay.style.display = "block";
         dueDateInput.addEventListener("change", function () {
           if (this.value) {
-            const selectedDate = this.value + "T00:00:00Z";
+            // Create date correctly using the local timezone
+            // Remove the Z suffix to avoid UTC interpretation
+            const selectedDate = this.value + "T00:00:00";
             const date = new Date(selectedDate);
-            item.dueDate = date.toISOString();
-            updateDueDateInfo(item.dueDate);
-            const project = appData.find((p) =>
-              p.lists.some(
-                (l) =>
-                  l.items.some((i) => i.id === item.id) ||
-                  (l.subLists &&
-                    l.subLists.some((sl) =>
-                      sl.items.some((i) => i.id === item.id)
-                    ))
-              )
-            );
-            if (project) {
-              saveData();
-              renderSingleProject(project);
+            
+            // For new items, just update the item object directly
+            if (item.isNew) {
+              item.dueDate = date.toISOString();
+              updateDueDateInfo(item.dueDate);
+            } else {
+              // For existing items, find the actual item in the data structure to update
+              let itemToUpdate = null;
+              let projectToRender = null;
+              
+              for (const project of appData) {
+                for (const list of project.lists) {
+                  // Check main list items
+                  const foundItem = list.items.find(i => i.id === item.id);
+                  if (foundItem) {
+                    itemToUpdate = foundItem;
+                    projectToRender = project;
+                    break;
+                  }
+                  
+                  // Check sublists if they exist
+                  if (list.subLists) {
+                    for (const subList of list.subLists) {
+                      const foundSubItem = subList.items.find(i => i.id === item.id);
+                      if (foundSubItem) {
+                        itemToUpdate = foundSubItem;
+                        projectToRender = project;
+                        break;
+                      }
+                    }
+                  }
+                  if (itemToUpdate) break;
+                }
+                if (itemToUpdate) break;
+              }
+              
+              // Update only the specific item found
+              if (itemToUpdate) {
+                itemToUpdate.dueDate = date.toISOString();
+                // Also update the current item if it's a reference to the same item
+                item.dueDate = date.toISOString();
+                updateDueDateInfo(item.dueDate);
+                
+                if (projectToRender) {
+                  saveData();
+                  renderSingleProject(projectToRender);
+                }
+              }
             }
           }
           saveData();
         });
         clearDueDate.addEventListener("click", function () {
           dueDateInput.value = "";
-          delete item.dueDate;
-          dueDateInfo.textContent = "";
+          
+          // For new items, just update the item object directly
+          if (item.isNew) {
+            delete item.dueDate;
+            dueDateInfo.textContent = "";
+          } else {
+            // Find the actual item in the data structure to update
+            let itemToUpdate = null;
+            let projectToRender = null;
+            
+            for (const project of appData) {
+              for (const list of project.lists) {
+                // Check main list items
+                const foundItem = list.items.find(i => i.id === item.id);
+                if (foundItem) {
+                  itemToUpdate = foundItem;
+                  projectToRender = project;
+                  break;
+                }
+                
+                // Check sublists if they exist
+                if (list.subLists) {
+                  for (const subList of list.subLists) {
+                    const foundSubItem = subList.items.find(i => i.id === item.id);
+                    if (foundSubItem) {
+                      itemToUpdate = foundSubItem;
+                      projectToRender = project;
+                      break;
+                    }
+                  }
+                }
+                if (itemToUpdate) break;
+              }
+              if (itemToUpdate) break;
+            }
+            
+            // Update only the specific item found
+            if (itemToUpdate) {
+              delete itemToUpdate.dueDate;
+            }
+            
+            // Also update the current item if it's a reference
+            delete item.dueDate;
+            dueDateInfo.textContent = "";
+            
+            // Save and update UI
+            saveData();
+            if (projectToRender) {
+              renderSingleProject(projectToRender);
+            }
+          }
           const project = appData.find((p) =>
             p.lists.some(
               (l) =>
@@ -2755,6 +2840,7 @@
         appData.forEach((project, projectIndex) => {
           project.lists.forEach((list, listIndex) => {
             if (list.name.toLowerCase() === "today") {
+              // Add tasks directly from the "Today" list
               list.items.forEach((item, itemIndex) => {
                 if (item.type === "todo") {
                   todayItems.push({
@@ -2767,8 +2853,27 @@
                   });
                 }
               });
-            }
-            if (list.subLists) {
+              
+              // Also add tasks from any sublists under the "Today" list
+              if (list.subLists) {
+                list.subLists.forEach((subList, subListIndex) => {
+                  subList.items.forEach((item, itemIndex) => {
+                    if (item.type === "todo") {
+                      todayItems.push({
+                        ...item,
+                        originalProjectIndex: projectIndex,
+                        originalListIndex: listIndex,
+                        originalSubListIndex: subListIndex,
+                        originalItemIndex: itemIndex,
+                        projectName: project.name,
+                        listName: `${list.name} > ${subList.name}`,
+                      });
+                    }
+                  });
+                });
+              }
+            } else if (list.subLists) {
+              // Check for sublists named "Today"
               list.subLists.forEach((subList, subListIndex) => {
                 if (subList.name.toLowerCase() === "today") {
                   subList.items.forEach((item, itemIndex) => {
@@ -2823,7 +2928,7 @@
         todayViewContainer.innerHTML = "";
         const header = document.createElement("div");
         header.className = "today-view-header";
-        header.textContent = "Today's Tasks";
+        header.textContent = "Planned Tasks";
         todayViewContainer.appendChild(header);
         const itemsContainer = document.createElement("div");
         itemsContainer.className = "today-items-container";
@@ -2847,6 +2952,39 @@
         if (item.backgroundColor) {
           itemCard.style.backgroundColor = item.backgroundColor;
         }
+        
+        // Add due date indicators and classes
+        if (item.type === "todo" && item.dueDate) {
+          const dueDate = new Date(item.dueDate);
+          const localDueDate = new Date(
+            dueDate.getUTCFullYear(),
+            dueDate.getUTCMonth(),
+            dueDate.getUTCDate()
+          );
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          const diffTime = localDueDate - now;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffTime < 0) {
+            itemCard.classList.add("overdue");
+          } else if (diffDays <= 2) {
+            itemCard.classList.add("due-soon");
+          }
+          
+          // Add calendar tag
+          const calendarTag = document.createElement("span");
+          calendarTag.classList.add("due-date-tag");
+          const month = localDueDate
+            .toLocaleString("default", { month: "short" })
+            .toUpperCase();
+          const day = localDueDate.getDate();
+          calendarTag.innerHTML = `
+          <span class="month">${month}</span>
+          <span class="day">${day}</span>
+          `;
+          itemCard.appendChild(calendarTag);
+        }
+        
         const numberSpan = document.createElement("span");
         numberSpan.className = "today-item-number";
         numberSpan.textContent = `${index + 1}.`;
