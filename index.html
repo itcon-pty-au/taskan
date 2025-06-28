@@ -38,6 +38,9 @@
           <button id="historyBtn" title="View Task History">
             <i class="fa fa-history"></i>
           </button>
+          <button id="archiveBtn" title="View Archive">
+            <i class="fas fa-archive"></i>
+          </button>
           <button id="themeToggleBtn" title="Toggle Theme">
             <i class="fas fa-moon"></i>
           </button>
@@ -80,19 +83,64 @@
       <div class="due-date-container" style="display: none">
         <label>Due Date:</label>
         <input type="date" id="dueDateInput" />
-        <button id="clearDueDate" title="Clear Due Date">
+        <select id="recurringSelect">
+          <option value="never">Never</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+        <button
+          id="clearDueDate"
+          class="small-action-btn"
+          title="Clear Due Date"
+        >
           <i class="fas fa-times"></i>
         </button>
         <span class="due-date-info"></span>
       </div>
       <div id="summernote"></div>
-      <div class="item-tags-container">
-        <label>Tags:</label>
-        <input
-          type="text"
-          id="itemTagsInput"
-          placeholder="Enter tags (comma separated)"
-        />
+      <div class="item-details-container">
+        <div class="item-checklist-container">
+          <label>Checklist</label>
+          <div class="checklist-input-group">
+            <input
+              type="text"
+              id="checklistItemInput"
+              placeholder="Add sub-task..."
+            />
+            <button id="addChecklistItemBtn" title="Add sub-task">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+          <ul id="checklistItems"></ul>
+        </div>
+        <div class="details-row">
+          <div class="item-tags-container">
+            <label>Tags</label>
+            <div class="tags-input-group">
+              <input
+                type="text"
+                id="itemTagsInput"
+                placeholder="Enter tags (comma separated)"
+              />
+            </div>
+          </div>
+          <div class="item-dependencies-container">
+            <label>Blocked By</label>
+            <div class="dependencies-input-group">
+              <input
+                type="text"
+                id="dependencyInput"
+                placeholder="Search for a task to add..."
+              />
+              <div
+                id="dependencySearchResults"
+                class="autocomplete-results"
+              ></div>
+            </div>
+            <ul id="dependencyItems"></ul>
+          </div>
+        </div>
       </div>
     </div>
     <div class="history-overlay"></div>
@@ -157,6 +205,15 @@
             style="display: none"
           />
         </div>
+      </div>
+      <div class="task-tag-palette-container">
+        <h3>
+          Task Tag Palette
+          <button class="add-task-tag-btn" title="Add Tag Color">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </h3>
+        <div id="taskTagPaletteEntries"></div>
       </div>
       <div class="milestones-container">
         <h3>
@@ -260,6 +317,8 @@
       const themeToggleBtn = document.getElementById("themeToggleBtn");
       const historyBtn = document.getElementById("historyBtn");
       const todayBtn = document.getElementById("todayBtn");
+      const archiveBtn = document.getElementById("archiveBtn");
+      let archiveMode = false;
       let appData = (() => {
         const backupConfig = localStorage.getItem(AUTO_BACKUP_KEY);
         const lastBackupTime = localStorage.getItem(LAST_BACKUP_KEY);
@@ -351,6 +410,21 @@
         });
         return el;
       }
+      function createArchiveButton(archiveAction, unArchiveAction, isArchived) {
+        const archiveButton = document.createElement("button");
+        archiveButton.innerHTML = isArchived
+          ? '<i class="fas fa-undo"></i>'
+          : '<i class="fas fa-archive"></i>';
+        archiveButton.title = isArchived ? "Unarchive" : "Archive";
+        archiveButton.addEventListener("click", () => {
+          if (isArchived) {
+            unArchiveAction();
+          } else {
+            archiveAction();
+          }
+        });
+        return archiveButton;
+      }
       function createDeleteButton(deleteAction) {
         const deleteButton = document.createElement("button");
         deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
@@ -381,6 +455,7 @@
         project,
         projectElement = document.createElement("div")
       ) {
+        if ((project.archived || false) !== archiveMode) return null;
         projectElement.className = "project";
         projectElement.id = `project-${project.id}`;
         const header = document.createElement("div");
@@ -477,6 +552,19 @@
             renderProjects();
           }
         };
+        const archiveButton = createArchiveButton(
+          () => {
+            project.archived = true;
+            saveData();
+            renderProjects();
+          },
+          () => {
+            delete project.archived;
+            saveData();
+            renderProjects();
+          },
+          project.archived
+        );
         const deleteButton = createDeleteButton(() => {
           const index = appData.indexOf(project);
           if (index > -1) {
@@ -486,10 +574,13 @@
           }
         });
         buttonContainer.appendChild(editButton);
-        buttonContainer.appendChild(addListButton);
+        if (!archiveMode) buttonContainer.appendChild(addListButton);
         buttonContainer.appendChild(collapseBtn);
-        buttonContainer.appendChild(moveUpBtn);
-        buttonContainer.appendChild(moveDownBtn);
+        if (!archiveMode) {
+          buttonContainer.appendChild(moveUpBtn);
+          buttonContainer.appendChild(moveDownBtn);
+        }
+        buttonContainer.appendChild(archiveButton);
         buttonContainer.appendChild(deleteButton);
         header.appendChild(headerContent);
         header.appendChild(buttonContainer);
@@ -501,7 +592,11 @@
           createList(project, list, listsContainer, index, project.lists.length)
         );
         projectElement.appendChild(listsContainer);
-        if (project.milestones && project.milestones.length > 0) {
+        if (
+          project.milestones &&
+          project.milestones.length > 0 &&
+          !archiveMode
+        ) {
           const timelineContainer = createTimeline(project);
           projectElement.insertBefore(timelineContainer, listsContainer);
         }
@@ -510,7 +605,9 @@
         }
         return projectElement;
       }
+
       function createList(project, list, container, index, totalLists) {
+        if ((list.archived || false) !== archiveMode) return;
         if (!list.id) {
           list.id = Date.now() + Math.random();
         }
@@ -539,24 +636,30 @@
         addTodoButton.innerHTML = '<i class="fa-regular fa-square-check"></i>';
         addTodoButton.title = "New Todo";
         addTodoButton.addEventListener("click", () => {
-          openEditor({
-            id: Date.now(),
-            type: "todo",
-            completed: false,
-            isNew: true,
-            list: list,
-          });
+          openEditor(
+            {
+              id: Date.now(),
+              type: "todo",
+              completed: false,
+              isNew: true,
+              list: list,
+            },
+            project
+          );
         });
         const addNoteButton = document.createElement("button");
         addNoteButton.innerHTML = '<i class="fa-regular fa-note-sticky"></i>';
         addNoteButton.title = "New Note";
         addNoteButton.addEventListener("click", () => {
-          openEditor({
-            id: Date.now(),
-            type: "note",
-            isNew: true,
-            list: list,
-          });
+          openEditor(
+            {
+              id: Date.now(),
+              type: "note",
+              isNew: true,
+              list: list,
+            },
+            project
+          );
         });
         const addSubListButton = document.createElement("button");
         addSubListButton.innerHTML = '<i class="fas fa-layer-group"></i>';
@@ -575,13 +678,26 @@
           saveData();
           renderSingleProject(project);
         });
+        const archiveButton = createArchiveButton(
+          () => {
+            list.archived = true;
+            saveData();
+            renderSingleProject(project);
+          },
+          () => {
+            delete list.archived;
+            saveData();
+            renderSingleProject(project);
+          },
+          list.archived
+        );
         const deleteListButton = createDeleteButton(() => {
           project.lists = project.lists.filter((l) => l.id !== list.id);
           saveData();
           renderSingleProject(project);
         });
         deleteListButton.title = "Delete List";
-        if (index > 0) {
+        if (index > 0 && !archiveMode) {
           const movePrevBtn = document.createElement("i");
           movePrevBtn.className = "fas fa-chevron-left";
           movePrevBtn.style.cursor = "pointer";
@@ -605,7 +721,7 @@
           });
           rearrangeButtons.appendChild(movePrevBtn);
         }
-        if (index < totalLists - 1) {
+        if (index < totalLists - 1 && !archiveMode) {
           const moveNextBtn = document.createElement("i");
           moveNextBtn.className = "fas fa-chevron-right";
           moveNextBtn.style.cursor = "pointer";
@@ -635,9 +751,12 @@
         const buttonContainer = document.createElement("div");
         buttonContainer.style.display = "flex";
         buttonContainer.style.gap = "5px";
-        buttonContainer.appendChild(addTodoButton);
-        buttonContainer.appendChild(addNoteButton);
-        buttonContainer.appendChild(addSubListButton);
+        if (!archiveMode) {
+          buttonContainer.appendChild(addTodoButton);
+          buttonContainer.appendChild(addNoteButton);
+          buttonContainer.appendChild(addSubListButton);
+        }
+        buttonContainer.appendChild(archiveButton);
         buttonContainer.appendChild(deleteListButton);
         headerContent.appendChild(buttonContainer);
         const listItemsContainer = document.createElement("div");
@@ -917,11 +1036,22 @@
         listDiv.appendChild(listItemsContainer);
         container.appendChild(listDiv);
       }
+
       function createListItem(list, item, container, project) {
+        if ((item.archived || false) !== archiveMode) return;
         const itemDiv = document.createElement("div");
         itemDiv.classList.add("list-item");
-        itemDiv.setAttribute("draggable", "true");
         itemDiv.setAttribute("data-item-id", item.id);
+
+        const isBlocked =
+          item.blockedBy && item.blockedBy.some((id) => !isTaskComplete(id));
+        if (isBlocked && !archiveMode) {
+          itemDiv.setAttribute("draggable", "false");
+          itemDiv.classList.add("blocked");
+        } else {
+          itemDiv.setAttribute("draggable", "true");
+        }
+
         const itemContent = document.createElement("div");
         if (item.type === "todo") {
           itemDiv.classList.add("todo-item");
@@ -966,7 +1096,7 @@
         const editorBtn = document.createElement("button");
         editorBtn.innerHTML = '<i class="fas fa-pen-to-square"></i>';
         editorBtn.title = "Open Editor";
-        editorBtn.addEventListener("click", () => openEditor(item));
+        editorBtn.addEventListener("click", () => openEditor(item, project));
         const toggleTypeBtn = document.createElement("button");
         toggleTypeBtn.innerHTML = '<i class="fa-solid fa-shuffle"></i>';
         toggleTypeBtn.title =
@@ -1033,16 +1163,32 @@
           timerControls.appendChild(timerDisplay);
           hoverMenu.appendChild(timerControls);
         }
+        const archiveButton = createArchiveButton(
+          () => {
+            item.archived = true;
+            saveData();
+            renderSingleProject(project);
+          },
+          () => {
+            delete item.archived;
+            saveData();
+            renderSingleProject(project);
+          },
+          item.archived
+        );
         const deleteButton = createDeleteButton(() => {
           list.items = list.items.filter((i) => i.id !== item.id);
           saveData();
           renderSingleProject(project);
         });
         hoverMenu.appendChild(editorBtn);
-        hoverMenu.appendChild(toggleTypeBtn);
-        hoverMenu.appendChild(colorPickerBtn);
-        hoverMenu.appendChild(clearFormattingBtn);
+        if (!archiveMode) {
+          hoverMenu.appendChild(toggleTypeBtn);
+          hoverMenu.appendChild(colorPickerBtn);
+          hoverMenu.appendChild(clearFormattingBtn);
+        }
         hoverMenu.appendChild(colorInput);
+        hoverMenu.appendChild(archiveButton);
         hoverMenu.appendChild(deleteButton);
         itemDiv.appendChild(hoverMenu);
         if (item.type === "todo") {
@@ -1051,18 +1197,8 @@
           checkbox.checked = item.completed;
           checkbox.classList.add("todo-checkbox");
           checkbox.addEventListener("change", () => {
-            item.completed = checkbox.checked;
+            handleTaskCompletion(item, checkbox.checked, project, list);
             itemContent.classList.toggle("strikethrough", item.completed);
-            if (item.completed) {
-              stopTimer(item);
-              addToHistory(item);
-              item.completedAt = new Date().toISOString();
-            } else {
-              delete item.completedAt;
-            }
-            saveData();
-            console.log("Called saveData after toggle");
-            renderTodayView();
           });
           itemDiv.appendChild(checkbox);
         }
@@ -1072,11 +1208,120 @@
               ? "..."
               : "")
         );
-        itemContent.addEventListener("click", () => openEditor(item));
+        itemContent.addEventListener("click", () => openEditor(item, project));
         itemContent.style.cursor = "pointer";
         itemDiv.appendChild(itemContent);
+
+        const itemMetaContainer = document.createElement("div");
+        itemMetaContainer.className = "item-meta-container";
+
+        if (isBlocked && !archiveMode) {
+          const blockedIcon = document.createElement("span");
+          blockedIcon.className = "dependency-icon";
+          blockedIcon.innerHTML = '<i class="fas fa-lock"></i>';
+          const blockingTasks = item.blockedBy
+            .map((id) => findTaskById(id)?.name || "Unknown Task")
+            .join(", ");
+          blockedIcon.title = `Blocked by: ${blockingTasks}`;
+          itemMetaContainer.appendChild(blockedIcon);
+        }
+
+        if (item.checklist && item.checklist.length > 0) {
+          const completedCount = item.checklist.filter(
+            (ci) => ci.completed
+          ).length;
+          const totalCount = item.checklist.length;
+          if (totalCount > 0) {
+            const checklistProgress = document.createElement("span");
+            checklistProgress.className = "checklist-progress";
+            checklistProgress.innerHTML = `<i class="fas fa-check-square"></i> ${completedCount}/${totalCount}`;
+            checklistProgress.title = `${completedCount} of ${totalCount} sub-tasks complete`;
+            itemMetaContainer.appendChild(checklistProgress);
+          }
+        }
+
+        if (item.tags && item.tags.length > 0) {
+          const tagsDisplay = document.createElement("div");
+          tagsDisplay.className = "item-tags-display";
+          const palette = project.taskTagPalette || {};
+          item.tags.forEach((tag) => {
+            const tagEl = document.createElement("span");
+            tagEl.className = "item-tag-on-card";
+            tagEl.textContent = tag;
+            const color = palette[tag.toLowerCase()] || "#808080";
+            tagEl.style.backgroundColor = color;
+            tagEl.style.color = getContrastColor(color);
+            tagsDisplay.appendChild(tagEl);
+          });
+          itemMetaContainer.appendChild(tagsDisplay);
+        }
+        itemDiv.appendChild(itemMetaContainer);
         container.appendChild(itemDiv);
         setupDragAndDrop(itemDiv, item, list, container, project);
+      }
+      function isTaskComplete(taskId) {
+        const task = findTaskById(taskId);
+        return task ? task.completed : true;
+      }
+      function findTaskById(taskId) {
+        for (const project of appData) {
+          for (const list of project.lists) {
+            const foundItem = list.items.find((i) => i && i.id === taskId);
+            if (foundItem) return foundItem;
+            if (list.subLists) {
+              for (const subList of list.subLists) {
+                const foundSubItem = subList.items.find(
+                  (i) => i && i.id === taskId
+                );
+                if (foundSubItem) return foundSubItem;
+              }
+            }
+          }
+        }
+        return null;
+      }
+      function handleTaskCompletion(item, isCompleted, project, list) {
+        item.completed = isCompleted;
+        if (item.completed) {
+          stopTimer(item);
+          addToHistory(item);
+          item.completedAt = new Date().toISOString();
+
+          if (item.recurring && item.recurring !== "never") {
+            const newItem = JSON.parse(JSON.stringify(item));
+            newItem.id = Date.now();
+            newItem.completed = false;
+            delete newItem.completedAt;
+
+            const currentDueDate = new Date(item.dueDate);
+            let nextDueDate;
+            switch (item.recurring) {
+              case "daily":
+                nextDueDate = new Date(
+                  currentDueDate.setDate(currentDueDate.getDate() + 1)
+                );
+                break;
+              case "weekly":
+                nextDueDate = new Date(
+                  currentDueDate.setDate(currentDueDate.getDate() + 7)
+                );
+                break;
+              case "monthly":
+                nextDueDate = new Date(
+                  currentDueDate.setMonth(currentDueDate.getMonth() + 1)
+                );
+                break;
+            }
+            newItem.dueDate = nextDueDate.toISOString();
+            list.items.push(newItem);
+            delete item.recurring;
+          }
+        } else {
+          delete item.completedAt;
+        }
+        saveData();
+        renderSingleProject(project);
+        renderTodayView();
       }
       function setupDragAndDrop(itemDiv, item, list, container, project) {
         itemDiv.addEventListener("dragstart", (e) => {
@@ -1138,12 +1383,43 @@
       }
       function renderProjects() {
         projectsContainer.innerHTML = "";
+        const header = document.createElement("h2");
+        header.className = "view-header";
+        header.textContent = archiveMode
+          ? "Archived Projects"
+          : "Active Projects";
+        if (appData.filter((p) => p.archived === archiveMode).length > 0) {
+          projectsContainer.appendChild(header);
+        }
+
+        let hasVisibleProjects = false;
         appData.forEach((project) => {
-          createProject(project);
+          if (createProject(project)) {
+            hasVisibleProjects = true;
+          }
         });
+
+        if (!hasVisibleProjects) {
+          projectsContainer.innerHTML = `<div class="empty-state">${
+            archiveMode
+              ? "Nothing in the archive. Keep it tidy!"
+              : 'No projects yet. Click "New Project" to start!'
+          }</div>`;
+        }
+
         initializeColoris();
       }
       addProjectBtn.addEventListener("click", () => showProjectForm(null));
+      archiveBtn.addEventListener("click", () => {
+        archiveMode = !archiveMode;
+        archiveBtn.classList.toggle("active", archiveMode);
+        if (archiveMode) {
+          todayViewContainer.style.display = "none";
+          projectsContainer.style.display = "flex";
+          todayBtn.classList.remove("active");
+        }
+        renderProjects();
+      });
       importDataBtn.addEventListener("click", () => {
         const input = document.createElement("input");
         input.type = "file";
@@ -1208,31 +1484,32 @@
         tmp.innerHTML = html;
         return tmp.textContent || tmp.innerText || "";
       }
-      function openEditor(item) {
+      function openEditor(item, project) {
         const popup = document.querySelector(".editor-popup");
         const overlay = document.querySelector(".editor-overlay");
         const closeBtn = popup.querySelector(".close-btn");
         const dueDateContainer = popup.querySelector(".due-date-container");
         const dueDateInput = popup.querySelector("#dueDateInput");
+        const recurringSelect = popup.querySelector("#recurringSelect");
         const clearDueDate = popup.querySelector("#clearDueDate");
         const dueDateInfo = popup.querySelector(".due-date-info");
         const headerTitle = popup.querySelector(".editor-header h3");
         const itemTagsInputOriginal = popup.querySelector("#itemTagsInput");
+        const checklistItemInput = popup.querySelector("#checklistItemInput");
+        const addChecklistItemBtn = popup.querySelector("#addChecklistItemBtn");
+        const checklistItemsUl = popup.querySelector("#checklistItems");
+        const dependencyInput = popup.querySelector("#dependencyInput");
+        const dependencySearchResults = popup.querySelector(
+          "#dependencySearchResults"
+        );
+        const dependencyItemsUl = popup.querySelector("#dependencyItems");
+
         const handleTagInput = () => {
-          console.log(`Handling tag input for item ID: ${item.id}`);
           const tags = newItemTagsInput.value
             .split(",")
             .map((tag) => tag.trim())
             .filter((tag) => tag.length > 0);
-          console.log(
-            `  Input value: '${newItemTagsInput.value}', Parsed tags:`,
-            JSON.stringify(tags)
-          );
           item.tags = tags.length > 0 ? tags : undefined;
-          console.log(
-            `  Item ID ${item.id} tags set to:`,
-            JSON.stringify(item.tags)
-          );
           saveData();
           if (document.body.classList.contains("showing-today")) {
             renderTodayView();
@@ -1244,9 +1521,6 @@
           itemTagsInputOriginal
         );
         newItemTagsInput.value = item.tags ? item.tags.join(", ") : "";
-        console.log(
-          `  Set initial input value for ${item.id}: '${newItemTagsInput.value}'`
-        );
         newItemTagsInput.addEventListener("input", handleTagInput);
         $("#summernote").empty();
         if ($("#summernote").data("summernote")) {
@@ -1255,14 +1529,155 @@
         dueDateContainer.style.display = item.type === "todo" ? "flex" : "none";
         headerTitle.textContent =
           item.type === "todo" ? "Edit Todo" : "Edit Note";
-        if (item.type === "todo" && item.dueDate) {
-          dueDateInput.value = item.dueDate.slice(0, 10);
-          updateDueDateInfo(item.dueDate);
+        if (item.type === "todo") {
+          dueDateInput.value = item.dueDate ? item.dueDate.slice(0, 10) : "";
+          recurringSelect.value = item.recurring || "never";
+          if (item.dueDate) updateDueDateInfo(item.dueDate);
         } else {
           dueDateInput.value = "";
           dueDateInfo.textContent = "";
+          recurringSelect.value = "never";
         }
-        itemTagsInputOriginal.value = item.tags ? item.tags.join(", ") : "";
+        if (!item.checklist) item.checklist = [];
+        const renderChecklist = () => {
+          checklistItemsUl.innerHTML = "";
+          item.checklist.forEach((checklistItem, index) => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = checklistItem.completed;
+            checkbox.onchange = () => {
+              checklistItem.completed = checkbox.checked;
+              saveData();
+              renderSingleProject(project);
+            };
+            const text = document.createElement("span");
+            text.textContent = checklistItem.text;
+            text.contentEditable = true;
+            text.onblur = () => {
+              checklistItem.text = text.textContent;
+              saveData();
+            };
+            const delBtn = document.createElement("button");
+            delBtn.innerHTML = '<i class="fas fa-times"></i>';
+            delBtn.onclick = () => {
+              item.checklist.splice(index, 1);
+              saveData();
+              renderChecklist();
+              renderSingleProject(project);
+            };
+            li.appendChild(checkbox);
+            li.appendChild(text);
+            li.appendChild(delBtn);
+            checklistItemsUl.appendChild(li);
+          });
+        };
+        renderChecklist();
+
+        addChecklistItemBtn.onclick = () => {
+          const text = checklistItemInput.value.trim();
+          if (text) {
+            item.checklist.push({
+              id: Date.now(),
+              text: text,
+              completed: false,
+            });
+            saveData();
+            renderChecklist();
+            renderSingleProject(project);
+            checklistItemInput.value = "";
+          }
+        };
+        checklistItemInput.onkeydown = (e) => {
+          if (e.key === "Enter") addChecklistItemBtn.click();
+        };
+        if (!item.blockedBy) item.blockedBy = [];
+        const renderDependencies = () => {
+          dependencyItemsUl.innerHTML = "";
+          item.blockedBy.forEach((taskId) => {
+            const task = findTaskById(taskId);
+            if (task) {
+              const li = document.createElement("li");
+              li.textContent = `[${task.id}] ${stripHtml(
+                task.name || task.content
+              ).substring(0, 30)}`;
+              li.className = task.completed ? "completed" : "";
+              const delBtn = document.createElement("button");
+              delBtn.innerHTML = '<i class="fas fa-times"></i>';
+              delBtn.onclick = () => {
+                item.blockedBy = item.blockedBy.filter((id) => id !== taskId);
+                saveData();
+                renderDependencies();
+                renderSingleProject(project);
+              };
+              li.appendChild(delBtn);
+              dependencyItemsUl.appendChild(li);
+            }
+          });
+        };
+        renderDependencies();
+
+        dependencyInput.oninput = () => {
+          const query = dependencyInput.value.toLowerCase();
+          dependencySearchResults.innerHTML = "";
+          if (query.length < 2) return;
+
+          let results = [];
+          appData.forEach((p) =>
+            p.lists.forEach((l) => {
+              l.items.forEach((i) => {
+                if (
+                  i.id !== item.id &&
+                  stripHtml(i.name || i.content)
+                    .toLowerCase()
+                    .includes(query)
+                ) {
+                  results.push(i);
+                }
+              });
+              if (l.subLists)
+                l.subLists.forEach((sl) =>
+                  sl.items.forEach((i) => {
+                    if (
+                      i.id !== item.id &&
+                      stripHtml(i.name || i.content)
+                        .toLowerCase()
+                        .includes(query)
+                    ) {
+                      results.push(i);
+                    }
+                  })
+                );
+            })
+          );
+
+          results.slice(0, 5).forEach((res) => {
+            const div = document.createElement("div");
+            div.textContent = `[${res.id}] ${stripHtml(
+              res.name || res.content
+            ).substring(0, 40)}`;
+            div.onclick = () => {
+              if (!item.blockedBy.includes(res.id)) {
+                item.blockedBy.push(res.id);
+                saveData();
+                renderDependencies();
+                renderSingleProject(project);
+              }
+              dependencyInput.value = "";
+              dependencySearchResults.innerHTML = "";
+            };
+            dependencySearchResults.appendChild(div);
+          });
+          dependencySearchResults.style.display =
+            results.length > 0 ? "block" : "none";
+        };
+
+        document.addEventListener("click", (e) => {
+          if (!dependencySearchResults.contains(e.target)) {
+            dependencySearchResults.style.display = "none";
+          }
+        });
+
         $("#summernote").summernote({
           height: "100%",
           minHeight: null,
@@ -1281,7 +1696,6 @@
               }
               if (item.isNew && item.type === "todo" && dueDateInput.value) {
                 const date = new Date(dueDateInput.value + "T00:00:00");
-                // For new items, we can directly set the dueDate as they're not yet in the appData structure
                 item.dueDate = date.toISOString();
                 updateDueDateInfo(item.dueDate);
               }
@@ -1345,129 +1759,33 @@
         overlay.style.display = "block";
         dueDateInput.addEventListener("change", function () {
           if (this.value) {
-            // Create date correctly using the local timezone
-            // Remove the Z suffix to avoid UTC interpretation
-            const selectedDate = this.value + "T00:00:00";
-            const date = new Date(selectedDate);
-            
-            // For new items, just update the item object directly
-            if (item.isNew) {
-              item.dueDate = date.toISOString();
-              updateDueDateInfo(item.dueDate);
-            } else {
-              // For existing items, find the actual item in the data structure to update
-              let itemToUpdate = null;
-              let projectToRender = null;
-              
-              for (const project of appData) {
-                for (const list of project.lists) {
-                  // Check main list items
-                  const foundItem = list.items.find(i => i.id === item.id);
-                  if (foundItem) {
-                    itemToUpdate = foundItem;
-                    projectToRender = project;
-                    break;
-                  }
-                  
-                  // Check sublists if they exist
-                  if (list.subLists) {
-                    for (const subList of list.subLists) {
-                      const foundSubItem = subList.items.find(i => i.id === item.id);
-                      if (foundSubItem) {
-                        itemToUpdate = foundSubItem;
-                        projectToRender = project;
-                        break;
-                      }
-                    }
-                  }
-                  if (itemToUpdate) break;
-                }
-                if (itemToUpdate) break;
-              }
-              
-              // Update only the specific item found
-              if (itemToUpdate) {
-                itemToUpdate.dueDate = date.toISOString();
-                // Also update the current item if it's a reference to the same item
-                item.dueDate = date.toISOString();
-                updateDueDateInfo(item.dueDate);
-                
-                if (projectToRender) {
-                  saveData();
-                  renderSingleProject(projectToRender);
-                }
-              }
-            }
+            const date = new Date(this.value + "T00:00:00");
+            item.dueDate = date.toISOString();
+            updateDueDateInfo(item.dueDate);
+          } else {
+            delete item.dueDate;
+            updateDueDateInfo(null);
+          }
+          saveData();
+          renderSingleProject(project);
+        });
+
+        recurringSelect.addEventListener("change", function () {
+          if (this.value === "never") {
+            delete item.recurring;
+          } else {
+            item.recurring = this.value;
           }
           saveData();
         });
         clearDueDate.addEventListener("click", function () {
           dueDateInput.value = "";
-          
-          // For new items, just update the item object directly
-          if (item.isNew) {
-            delete item.dueDate;
-            dueDateInfo.textContent = "";
-          } else {
-            // Find the actual item in the data structure to update
-            let itemToUpdate = null;
-            let projectToRender = null;
-            
-            for (const project of appData) {
-              for (const list of project.lists) {
-                // Check main list items
-                const foundItem = list.items.find(i => i.id === item.id);
-                if (foundItem) {
-                  itemToUpdate = foundItem;
-                  projectToRender = project;
-                  break;
-                }
-                
-                // Check sublists if they exist
-                if (list.subLists) {
-                  for (const subList of list.subLists) {
-                    const foundSubItem = subList.items.find(i => i.id === item.id);
-                    if (foundSubItem) {
-                      itemToUpdate = foundSubItem;
-                      projectToRender = project;
-                      break;
-                    }
-                  }
-                }
-                if (itemToUpdate) break;
-              }
-              if (itemToUpdate) break;
-            }
-            
-            // Update only the specific item found
-            if (itemToUpdate) {
-              delete itemToUpdate.dueDate;
-            }
-            
-            // Also update the current item if it's a reference
-            delete item.dueDate;
-            dueDateInfo.textContent = "";
-            
-            // Save and update UI
-            saveData();
-            if (projectToRender) {
-              renderSingleProject(projectToRender);
-            }
-          }
-          const project = appData.find((p) =>
-            p.lists.some(
-              (l) =>
-                l.items.some((i) => i.id === item.id) ||
-                (l.subLists &&
-                  l.subLists.some((sl) =>
-                    sl.items.some((i) => i.id === item.id)
-                  ))
-            )
-          );
-          if (project) {
-            saveData();
-            renderSingleProject(project);
-          }
+          recurringSelect.value = "never";
+          delete item.dueDate;
+          delete item.recurring;
+          dueDateInfo.textContent = "";
+          saveData();
+          renderSingleProject(project);
         });
         const closeEditor = () => {
           const content = $("#summernote").summernote("code");
@@ -1479,6 +1797,10 @@
               type: item.type,
               content: content,
               completed: item.type === "todo" ? false : undefined,
+              tags: item.tags,
+              checklist: item.checklist,
+              blockedBy: item.blockedBy,
+              recurring: item.recurring,
             };
             if (item.dueDate) {
               newItem.dueDate = item.dueDate;
@@ -1486,11 +1808,11 @@
             if (item.list) {
               item.list.items.push(newItem);
               saveData();
-              const project = appData.find((p) =>
+              const projectForRender = appData.find((p) =>
                 p.lists.some((l) => l.id === item.list.id)
               );
-              if (project) {
-                renderSingleProject(project);
+              if (projectForRender) {
+                renderSingleProject(projectForRender);
               }
             }
           }
@@ -1504,6 +1826,10 @@
       }
       function updateDueDateInfo(dueDate) {
         const dueDateInfo = document.querySelector(".due-date-info");
+        if (!dueDate) {
+          dueDateInfo.textContent = "";
+          return;
+        }
         const now = new Date();
         const due = new Date(dueDate);
         const diffTime = due - now;
@@ -1708,10 +2034,17 @@
         const form = document.querySelector(".project-form");
         const overlay = document.querySelector(".form-overlay");
         const milestoneEntries = document.getElementById("milestoneEntries");
+        const taskTagPaletteEntries = document.getElementById(
+          "taskTagPaletteEntries"
+        );
         const projectNameInput = document.getElementById("projectName");
-        const tagsInput = form.querySelector(".tags-input");
-        const tagColorPicker = form.querySelector(".tag-color-picker");
-        const colorPreview = form.querySelector(".color-preview");
+        const projectTagsContainer = form.querySelector(".tags-container");
+        const tagsInput = projectTagsContainer.querySelector(".tags-input");
+        const tagColorPicker =
+          projectTagsContainer.querySelector(".tag-color-picker");
+        const colorPreview =
+          projectTagsContainer.querySelector(".color-preview");
+
         const submitBtn = document.querySelector(".submit-btn");
         const newColorPreview = colorPreview.cloneNode(true);
         colorPreview.parentNode.replaceChild(newColorPreview, colorPreview);
@@ -1743,6 +2076,8 @@
         tagColorPicker.value = defaultColor;
         colorPreview.style.backgroundColor = defaultColor;
         milestoneEntries.innerHTML = "";
+        taskTagPaletteEntries.innerHTML = "";
+
         if (projectToEdit) {
           projectNameInput.value = projectToEdit.name;
           if (projectToEdit.tags) {
@@ -1753,25 +2088,24 @@
           }
           if (projectToEdit.milestones) {
             projectToEdit.milestones.forEach((milestone) => {
-              const entry = document.createElement("div");
-              entry.classList.add("milestone-entry");
-              entry.innerHTML = `
-              <input type="text" class="milestone-name" placeholder="Milestone name" value="${milestone.name}">
-              <input type="date" class="milestone-date" value="${milestone.date}">
-              <span class="remove-milestone" title="Remove Milestone">×</span>
-            `;
-              entry
-                .querySelector(".remove-milestone")
-                .addEventListener("click", () => {
-                  entry.remove();
-                });
-              milestoneEntries.appendChild(entry);
+              addMilestoneEntry(milestone.name, milestone.date);
             });
+          }
+          if (projectToEdit.taskTagPalette) {
+            Object.entries(projectToEdit.taskTagPalette).forEach(
+              ([tagName, color]) => {
+                addTaskTagPaletteEntry(tagName, color);
+              }
+            );
           }
         }
         if (milestoneEntries.children.length === 0) {
           addMilestoneEntry();
         }
+        if (taskTagPaletteEntries.children.length === 0) {
+          addTaskTagPaletteEntry();
+        }
+
         form.style.display = "block";
         overlay.style.display = "block";
         setTimeout(() => projectNameInput.focus(), 150);
@@ -1791,12 +2125,30 @@
               date: entry.querySelector(".milestone-date").value,
             }))
             .filter((m) => m.name && m.date);
+          const taskTagPalette = {};
+          document
+            .querySelectorAll(".task-tag-palette-entry")
+            .forEach((entry) => {
+              const name = entry
+                .querySelector(".task-tag-name")
+                .value.trim()
+                .toLowerCase();
+              const color = entry.querySelector(".task-tag-color-picker").value;
+              if (name) {
+                taskTagPalette[name] = color;
+              }
+            });
+
           if (projectToEdit) {
             projectToEdit.name = projectName;
             projectToEdit.tags = tags.length > 0 ? tags : undefined;
             projectToEdit.tagColor = tagColor;
             projectToEdit.milestones =
               milestones.length > 0 ? milestones : undefined;
+            projectToEdit.taskTagPalette =
+              Object.keys(taskTagPalette).length > 0
+                ? taskTagPalette
+                : undefined;
           } else {
             const newProject = {
               id: Date.now(),
@@ -1805,6 +2157,10 @@
               tagColor: tagColor,
               lists: [],
               milestones: milestones.length > 0 ? milestones : undefined,
+              taskTagPalette:
+                Object.keys(taskTagPalette).length > 0
+                  ? taskTagPalette
+                  : undefined,
             };
             appData.unshift(newProject);
           }
@@ -1814,13 +2170,44 @@
           overlay.style.display = "none";
         };
       }
-      function addMilestoneEntry() {
+      function addTaskTagPaletteEntry(name = "", color = "#2a9d8f") {
+        const container = document.getElementById("taskTagPaletteEntries");
+        const entry = document.createElement("div");
+        entry.classList.add("task-tag-palette-entry");
+        const colorPickerId = `task-tag-color-picker-${Date.now()}-${Math.floor(
+          Math.random() * 1e9
+        )}`;
+
+        entry.innerHTML = `
+              <input type="text" class="task-tag-name" placeholder="Tag name (e.g. bug)" value="${name}">
+              <div class="color-preview" style="background-color: ${color}"></div>
+              <input type="text" class="task-tag-color-picker" id="${colorPickerId}" data-coloris value="${color}" style="display: none;">
+              <span class="remove-task-tag" title="Remove Tag Color">×</span>
+          `;
+        const colorPickerInput = entry.querySelector(`#${colorPickerId}`);
+
+        entry
+          .querySelector(".color-preview")
+          .addEventListener("click", function () {
+            colorPickerInput.click();
+          });
+        colorPickerInput.addEventListener("change", function (e) {
+          entry.querySelector(".color-preview").style.backgroundColor =
+            e.target.value;
+        });
+        entry
+          .querySelector(".remove-task-tag")
+          .addEventListener("click", () => entry.remove());
+        container.appendChild(entry);
+        initializeColoris();
+      }
+      function addMilestoneEntry(name = "", date = "") {
         const container = document.getElementById("milestoneEntries");
         const entry = document.createElement("div");
         entry.classList.add("milestone-entry");
         entry.innerHTML = `
-        <input type="text" class="milestone-name" placeholder="Milestone name">
-        <input type="date" class="milestone-date">
+        <input type="text" class="milestone-name" placeholder="Milestone name" value="${name}">
+        <input type="date" class="milestone-date" value="${date}">
         <span class="remove-milestone" title="Remove Milestone">×</span>
       `;
         entry
@@ -1932,7 +2319,10 @@
       }
       document
         .querySelector(".add-milestone-btn")
-        .addEventListener("click", addMilestoneEntry);
+        .addEventListener("click", () => addMilestoneEntry());
+      document
+        .querySelector(".add-task-tag-btn")
+        .addEventListener("click", () => addTaskTagPaletteEntry());
       document.querySelector(".cancel-btn").addEventListener("click", () => {
         document.querySelector(".project-form").style.display = "none";
         document.querySelector(".form-overlay").style.display = "none";
@@ -2073,6 +2463,7 @@
                 if (!item) return false;
                 if (item.type !== "todo") return true;
                 if (!item.completed) return true;
+                if (item.recurring) return true;
                 if (item.completedAt) {
                   const completionDate = new Date(item.completedAt);
                   return completionDate >= today;
@@ -2089,6 +2480,7 @@
                     if (!item) return false;
                     if (item.type !== "todo") return true;
                     if (!item.completed) return true;
+                    if (item.recurring) return true;
                     if (item.completedAt) {
                       const completionDate = new Date(item.completedAt);
                       return completionDate >= today;
@@ -2131,46 +2523,34 @@
       function renderSingleProject(project) {
         const projectIndex = appData.findIndex((p) => p.id === project.id);
         if (projectIndex === -1) return;
-        const existingProject = Array.from(projectsContainer.children).find(
-          (el) =>
-            el.querySelector(".project-header .editable").textContent ===
-            project.name
+        const existingProjectEl = document.getElementById(
+          `project-${project.id}`
         );
-        const currentIndex = Array.from(projectsContainer.children).indexOf(
-          existingProject
-        );
-        if (existingProject) {
-          if (currentIndex !== projectIndex) {
-            const timelineContainer = existingProject.querySelector(
-              ".timeline-container"
-            );
-            const nextSibling =
-              projectsContainer.children[projectIndex] || null;
-            projectsContainer.insertBefore(existingProject, nextSibling);
-            return;
+
+        const newProjectElement = document.createElement("div");
+        const renderedElement = createProject(project, newProjectElement);
+
+        if (existingProjectEl) {
+          if (renderedElement) {
+            existingProjectEl.replaceWith(renderedElement);
+          } else {
+            existingProjectEl.remove();
           }
-          const timelineContainer = existingProject.querySelector(
-            ".timeline-container"
-          );
-          existingProject.remove();
-          const newProjectElement = document.createElement("div");
-          createProject(project, newProjectElement);
-          if (timelineContainer) {
-            const newTimeline = newProjectElement.querySelector(
-              ".timeline-container"
+        } else if (renderedElement) {
+          const nextProject = appData
+            .slice(projectIndex + 1)
+            .find((p) => p.archived === archiveMode);
+          if (nextProject) {
+            const nextProjectEl = document.getElementById(
+              `project-${nextProject.id}`
             );
-            if (newTimeline) {
-              newTimeline.replaceWith(timelineContainer);
+            if (nextProjectEl) {
+              projectsContainer.insertBefore(renderedElement, nextProjectEl);
+              return;
             }
           }
-          const nextSibling = projectsContainer.children[projectIndex] || null;
-          projectsContainer.insertBefore(newProjectElement, nextSibling);
-          return;
+          projectsContainer.appendChild(renderedElement);
         }
-        const newProjectElement = document.createElement("div");
-        createProject(project, newProjectElement);
-        const nextSibling = projectsContainer.children[projectIndex] || null;
-        projectsContainer.insertBefore(newProjectElement, nextSibling);
       }
       function initTutorial() {
         if (localStorage.getItem("tutorialShown")) {
@@ -2840,7 +3220,6 @@
         appData.forEach((project, projectIndex) => {
           project.lists.forEach((list, listIndex) => {
             if (list.name.toLowerCase() === "today") {
-              // Add tasks directly from the "Today" list
               list.items.forEach((item, itemIndex) => {
                 if (item.type === "todo") {
                   todayItems.push({
@@ -2853,8 +3232,6 @@
                   });
                 }
               });
-              
-              // Also add tasks from any sublists under the "Today" list
               if (list.subLists) {
                 list.subLists.forEach((subList, subListIndex) => {
                   subList.items.forEach((item, itemIndex) => {
@@ -2873,7 +3250,6 @@
                 });
               }
             } else if (list.subLists) {
-              // Check for sublists named "Today"
               list.subLists.forEach((subList, subListIndex) => {
                 if (subList.name.toLowerCase() === "today") {
                   subList.items.forEach((item, itemIndex) => {
@@ -2952,8 +3328,6 @@
         if (item.backgroundColor) {
           itemCard.style.backgroundColor = item.backgroundColor;
         }
-        
-        // Add due date indicators and classes
         if (item.type === "todo" && item.dueDate) {
           const dueDate = new Date(item.dueDate);
           const localDueDate = new Date(
@@ -2970,8 +3344,6 @@
           } else if (diffDays <= 2) {
             itemCard.classList.add("due-soon");
           }
-          
-          // Add calendar tag
           const calendarTag = document.createElement("span");
           calendarTag.classList.add("due-date-tag");
           const month = localDueDate
@@ -2984,7 +3356,7 @@
           `;
           itemCard.appendChild(calendarTag);
         }
-        
+
         const numberSpan = document.createElement("span");
         numberSpan.className = "today-item-number";
         numberSpan.textContent = `${index + 1}.`;
@@ -2998,7 +3370,6 @@
           itemCard.classList.toggle("completed", checkbox.checked);
         });
         itemCard.appendChild(checkbox);
-        // Content
         const contentDiv = document.createElement("div");
         contentDiv.className = "today-item-content";
         const itemName = document.createElement("div");
@@ -3013,15 +3384,37 @@
           itemCard.classList.add("completed");
         }
         itemName.style.cursor = "pointer";
-        itemName.addEventListener("click", () =>
-          openEditor(findOriginalItem(item.id))
+        const originalItemRef = findOriginalItem(item.id);
+        const projectRef = appData.find((p) =>
+          p.lists.some(
+            (l) =>
+              l.items.some((i) => i.id === item.id) ||
+              (l.subLists &&
+                l.subLists.some((sl) => sl.items.some((i) => i.id === item.id)))
+          )
         );
+        itemName.addEventListener("click", () =>
+          openEditor(originalItemRef, projectRef)
+        );
+
         let tagsHtml = "";
-        if (item.tags && item.tags.length > 0) {
+        if (
+          item.tags &&
+          item.tags.length > 0 &&
+          projectRef &&
+          projectRef.taskTagPalette
+        ) {
           tagsHtml = `<div class="today-item-tags">${item.tags
-            .map((tag) => `<span class="item-tag">${tag}</span>`)
+            .map((tag) => {
+              const color =
+                projectRef.taskTagPalette[tag.toLowerCase()] || "#808080";
+              return `<span class="item-tag-on-card" style="background-color: ${color}; color: ${getContrastColor(
+                color
+              )};">${tag}</span>`;
+            })
             .join("")}</div>`;
         }
+
         const itemInfo = document.createElement("div");
         itemInfo.className = "today-item-info";
         itemInfo.textContent = `Project: ${item.projectName} | List: ${item.listName}`;
@@ -3039,6 +3432,16 @@
         contentDiv.appendChild(itemName);
         if (tagsHtml) {
           contentDiv.insertAdjacentHTML("beforeend", tagsHtml);
+        }
+        if (item.checklist && item.checklist.length > 0) {
+          const completedCount = item.checklist.filter(
+            (ci) => ci.completed
+          ).length;
+          const totalCount = item.checklist.length;
+          const checklistProgress = document.createElement("span");
+          checklistProgress.className = "checklist-progress";
+          checklistProgress.innerHTML = `<i class="fas fa-check-square"></i> ${completedCount}/${totalCount}`;
+          contentDiv.appendChild(checklistProgress);
         }
         contentDiv.appendChild(itemInfo);
         itemCard.appendChild(contentDiv);
@@ -3154,22 +3557,33 @@
       function toggleTodayItemComplete(itemId, completed) {
         const originalItem = findOriginalItem(itemId);
         if (!originalItem) return;
-        originalItem.completed = completed;
-        if (completed) {
-          originalItem.completedAt = new Date().toISOString();
-          addToHistory(originalItem);
-          if (activeTimers.has(itemId)) {
-            stopTimer(originalItem);
+
+        let listRef = null;
+        let projectRef = null;
+        for (const p of appData) {
+          for (const l of p.lists) {
+            if (l.items.some((i) => i.id === originalItem.id)) {
+              listRef = l;
+              projectRef = p;
+              break;
+            }
+            if (l.subLists) {
+              for (const sl of l.subLists) {
+                if (sl.items.some((i) => i.id === originalItem.id)) {
+                  listRef = sl;
+                  projectRef = p;
+                  break;
+                }
+              }
+            }
+            if (listRef) break;
           }
-          if (itemId in todayViewOrder) {
-            delete todayViewOrder[itemId];
-            saveTodayViewOrder();
-          }
-        } else {
-          delete originalItem.completedAt;
+          if (listRef) break;
         }
-        saveData();
-        renderTodayView();
+
+        if (projectRef && listRef) {
+          handleTaskCompletion(originalItem, completed, projectRef, listRef);
+        }
       }
       function updateTodayViewOrder(container) {
         const newOrder = {};
@@ -3199,8 +3613,9 @@
         localStorage.setItem("todayViewOrder", JSON.stringify(todayViewOrder));
       }
       todayBtn.addEventListener("click", () => {
-        const isProjectsVisible = projectsContainer.style.display !== "none";
-        if (isProjectsVisible) {
+        const isProjectsVisible =
+          projectsContainer.style.display !== "none" || archiveMode;
+        if (isProjectsVisible && !archiveMode) {
           projectsContainer.style.display = "none";
           todayViewContainer.style.display = "flex";
           document.body.classList.remove("showing-projects");
@@ -3213,6 +3628,10 @@
           document.body.classList.add("showing-projects");
           document.body.classList.remove("showing-today");
           todayBtn.classList.remove("active");
+          if (archiveMode) {
+            archiveMode = false;
+            archiveBtn.classList.remove("active");
+          }
           renderProjects();
         }
       });
